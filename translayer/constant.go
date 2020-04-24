@@ -1,4 +1,4 @@
-package bmprotocol
+package translayer
 
 const(
 	MIN_TYP uint16 = iota

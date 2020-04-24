@@ -1,7 +1,6 @@
 package translayer
 
 import (
-	"github.com/BASChain/go-bmail-protocol/bmprotocol"
 	"github.com/pkg/errors"
 	"encoding/binary"
 )
@@ -60,7 +59,7 @@ func UInt64ToBuf(ui64 uint64 ) []byte {
 
 func (bmtl *BMTransLayer)Pack() ([]byte,error) {
 
-	if bmtl.typ <= bmprotocol.MIN_TYP || bmtl.typ>bmprotocol.MAX_TYP{
+	if bmtl.typ <= MIN_TYP || bmtl.typ>MAX_TYP{
 		return nil,errors.New("BMail Action Type Error")
 	}
 	var r []byte
@@ -104,7 +103,7 @@ func (bmtl *BMTransLayer)UnPack(data []byte) (int,error) {
 	bmtl.typ = binary.BigEndian.Uint16(data[offset:])
 	offset += 2
 
-	if bmtl.typ <= bmprotocol.MIN_TYP || bmtl.typ>=bmprotocol.MAX_TYP{
+	if bmtl.typ <= MIN_TYP || bmtl.typ>=MAX_TYP{
 		return 0,errors.New("BMail Action Type Error")
 	}
 

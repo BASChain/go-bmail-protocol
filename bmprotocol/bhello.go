@@ -16,7 +16,7 @@ func NewBMHello() *BMHello {
 }
 
 func (bmh *BMHello)Pack() ([]byte, error) {
-	bmact:= translayer.NewBMTL(HELLO,nil)
+	bmact:= translayer.NewBMTL(translayer.HELLO,nil)
 
 	return bmact.Pack()
 }
@@ -45,7 +45,7 @@ func (bmha *BMHelloACK)Pack() ([]byte,error)  {
 	barr = append(barr,bufl...)
 	barr = append(barr,bmha.sn...)
 
-	bmact:= translayer.NewBMTL(HELLO_ACK,barr)
+	bmact:= translayer.NewBMTL(translayer.HELLO_ACK,barr)
 
 	return bmact.Pack()
 }
@@ -142,7 +142,7 @@ func (ss *SendSignature)Pack() ([]byte,error)  {
 
 	r = append(r,ss.sig...)
 
-	bmact:= translayer.NewBMTL(SEND_SIGNATURE,r)
+	bmact:= translayer.NewBMTL(translayer.SEND_SIGNATURE,r)
 
 	return bmact.Pack()
 }
@@ -211,7 +211,7 @@ func (vs *ValidateSignature)Pack() ([]byte,error)  {
 	barr = append(barr,bufl...)
 	barr = append(barr,vs.sn...)
 
-	bmact:= translayer.NewBMTL(VALIDATE_SIGNATURE,barr)
+	bmact:= translayer.NewBMTL(translayer.VALIDATE_SIGNATURE,barr)
 
 	return bmact.Pack()
 }
