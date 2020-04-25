@@ -36,7 +36,7 @@ func (bmtl *BMTransLayer) String() string {
 func (bmtl *BMTransLayer) HeadString() string {
 	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
 	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
-	s += fmt.Sprintf("MsgType: %-4d\r\n", bmtl.cryptType)
+	s += fmt.Sprintf("MsgType: %-4d\r\n", bmtl.typ)
 
 	return s
 }

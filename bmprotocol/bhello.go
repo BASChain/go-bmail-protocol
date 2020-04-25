@@ -2,6 +2,7 @@ package bmprotocol
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/kprc/nbsnetwork/tools"
@@ -66,7 +67,7 @@ func (bmha *BMHelloACK) Pack() ([]byte, error) {
 func (bmha *BMHelloACK) String() string {
 	s := bmha.BMTransLayer.HeadString()
 
-	s += base58.Encode(bmha.sn)
+	s += fmt.Sprintf("sn: %s", base58.Encode(bmha.sn))
 
 	return s
 }
@@ -128,6 +129,24 @@ func NewSendSignature(sn []byte, localMailAddr string) *SendSignature {
 	ss.BMTransLayer = *bmtl
 
 	return ss
+}
+
+func (ss *SendSignature) String() string {
+	s := ss.BMTransLayer.HeadString()
+
+	s += fmt.Sprintf("sn:%s\r\n", base58.Encode(ss.sn))
+
+	s += fmt.Sprintf("mail:%s\r\n", ss.localMailAddr)
+
+	s += fmt.Sprintf("time:%d\r\n", ss.currentTime)
+
+	s += fmt.Sprintf("sig:%s\r\n", base58.Encode(ss.sig))
+
+	return s
+}
+
+func (ss *SendSignature) GetSig() []byte {
+	return ss.sig
 }
 
 func (ss *SendSignature) ForSigBuf() []byte {
@@ -218,11 +237,27 @@ func (ss *SendSignature) UnPack(buf []byte) (int, error) {
 }
 
 type ValidateSignature struct {
+	translayer.BMTransLayer
 	sn []byte
 }
 
 func NewValidSign(sn []byte) *ValidateSignature {
-	return &ValidateSignature{}
+	vs := &ValidateSignature{}
+	bmact := translayer.NewBMTL(translayer.VALIDATE_SIGNATURE, nil)
+
+	vs.BMTransLayer = *bmact
+
+	vs.sn = sn
+
+	return vs
+}
+
+func (vs *ValidateSignature) String() string {
+	s := vs.BMTransLayer.HeadString()
+
+	s += fmt.Sprintf("sn: %s", base58.Encode(vs.sn))
+
+	return s
 }
 
 func (vs *ValidateSignature) Pack() ([]byte, error) {
@@ -233,9 +268,9 @@ func (vs *ValidateSignature) Pack() ([]byte, error) {
 	barr = append(barr, bufl...)
 	barr = append(barr, vs.sn...)
 
-	bmact := translayer.NewBMTL(translayer.VALIDATE_SIGNATURE, barr)
+	vs.BMTransLayer.SetData(barr)
 
-	return bmact.Pack()
+	return vs.BMTransLayer.Pack()
 }
 
 func (vs *ValidateSignature) UnPack(data []byte) (int, error) {

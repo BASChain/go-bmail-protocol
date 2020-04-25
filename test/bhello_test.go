@@ -1,8 +1,10 @@
 package test
 
 import (
+	"crypto"
 	crand "crypto/rand"
 	"crypto/rsa"
+	"crypto/sha256"
 	"fmt"
 	"github.com/BASChain/go-bmail-protocol/bmprotocol"
 	"github.com/BASChain/go-bmail-protocol/translayer"
@@ -81,10 +83,89 @@ func Test_SendSignature(t *testing.T) {
 
 	pub := &rsapriv.PublicKey
 
-	fmt.Println(pub)
+	sn := make([]byte, 32)
 
+	for {
+		n, _ := rand.Read(sn)
+		if n != len(sn) {
+			continue
+		}
+		break
+	}
+
+	ss := bmprotocol.NewSendSignature(sn, "admin@bas")
+
+	fsig := ss.ForSigBuf()
+
+	hashed := sha256.Sum256(fsig)
+
+	sig, _ := rsa.SignPKCS1v15(crand.Reader, rsapriv, crypto.SHA256, hashed[:])
+
+	ss.SetSig(sig)
+
+	fmt.Println(ss.String())
+
+	data, _ := ss.Pack()
+
+	bmtl := &translayer.BMTransLayer{}
+
+	offset, _ := bmtl.UnPack(data)
+
+	ssUnPack := &bmprotocol.SendSignature{}
+
+	ssUnPack.BMTransLayer = *bmtl
+
+	ssUnPack.UnPack(data[offset:])
+
+	fmt.Println(ssUnPack.String())
+
+	hashed = sha256.Sum256(ss.ForSigBuf())
+
+	if err := rsa.VerifyPKCS1v15(pub, crypto.SHA256, hashed[:], ssUnPack.GetSig()); err != nil {
+		t.Fatal("failed")
+	}
+
+	if ss.String() == ssUnPack.String() {
+		t.Log("pass")
+	} else {
+		t.Fatal("failed")
+	}
 }
 
 func Test_ValidateSignature(t *testing.T) {
+	sn := make([]byte, 32)
 
+	for {
+		n, _ := rand.Read(sn)
+		if n != len(sn) {
+			continue
+		}
+		break
+	}
+
+	vs := bmprotocol.NewValidSign(sn)
+
+	fmt.Println(vs.String())
+
+	data, _ := vs.Pack()
+
+	//fmt.Println(hex.EncodeToString(data))
+
+	bmtl := &translayer.BMTransLayer{}
+
+	offset, _ := bmtl.UnPack(data)
+
+	//fmt.Println(offset)
+
+	vsUnPack := &bmprotocol.BMHelloACK{}
+	vsUnPack.BMTransLayer = *bmtl
+	vsUnPack.UnPack(data[offset:])
+
+	fmt.Println(vsUnPack.String())
+
+	if vs.String() == vsUnPack.String() {
+		t.Log("pass")
+	} else {
+		t.Fatal("failed")
+	}
 }
