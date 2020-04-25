@@ -1,6 +1,6 @@
 package translayer
 
-const(
+const (
 	MIN_TYP uint16 = iota
 	//bhello
 	HELLO
