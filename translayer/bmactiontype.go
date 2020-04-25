@@ -22,12 +22,11 @@ func (bmtl *BMTransLayer) GetData() []byte {
 }
 
 func (bmtl *BMTransLayer) SetData(data []byte) {
-	bmtl.data =data
+	bmtl.data = data
 }
 
-
 func (bmtl *BMTransLayer) String() string {
-	s:=bmtl.HeadString()
+	s := bmtl.HeadString()
 
 	s += fmt.Sprintf("%s", base58.Encode(bmtl.data))
 
@@ -41,7 +40,6 @@ func (bmtl *BMTransLayer) HeadString() string {
 
 	return s
 }
-
 
 func NewBMTL(typ uint16, data []byte) *BMTransLayer {
 	bmtl := &BMTransLayer{}
@@ -114,11 +112,9 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("Not a BMail Action Data")
 	}
 
-
 	offset := 0
 	bmtl.ver = binary.BigEndian.Uint16(data[offset:])
 	offset += 2
-
 
 	bmtl.cryptType = binary.BigEndian.Uint16(data[offset:])
 	offset += 2
@@ -130,7 +126,6 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("BMail Action Type Error")
 	}
 
-
 	l := binary.BigEndian.Uint32(data[offset:])
 	offset += 4
 
@@ -140,5 +135,5 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("Data Length Error")
 	}
 
-	return offset , nil
+	return offset, nil
 }

@@ -3,9 +3,9 @@ package bmprotocol
 import (
 	"encoding/binary"
 	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/btcsuite/btcutil/base58"
 	"github.com/kprc/nbsnetwork/tools"
 	"github.com/pkg/errors"
-	"github.com/btcsuite/btcutil/base58"
 )
 
 type BMHello struct {
@@ -14,7 +14,7 @@ type BMHello struct {
 
 func NewBMHello() *BMHello {
 	bmtl := translayer.NewBMTL(translayer.HELLO, nil)
-	bmh:=&BMHello{}
+	bmh := &BMHello{}
 	bmh.BMTransLayer = *bmtl
 
 	return bmh
@@ -29,7 +29,7 @@ func (bmh *BMHello) UnPack(data []byte) (int, error) {
 	return 0, nil
 }
 
-func (bmh *BMHello)String() string  {
+func (bmh *BMHello) String() string {
 	return bmh.BMTransLayer.String()
 }
 
@@ -41,11 +41,11 @@ type BMHelloACK struct {
 func NewBMHelloACK(sn []byte) *BMHelloACK {
 	bmact := translayer.NewBMTL(translayer.HELLO_ACK, nil)
 
-	bmhack:= &BMHelloACK{}
+	bmhack := &BMHelloACK{}
 
 	bmhack.BMTransLayer = *bmact
 
-	bmhack.sn =sn
+	bmhack.sn = sn
 
 	return bmhack
 }
@@ -63,14 +63,13 @@ func (bmha *BMHelloACK) Pack() ([]byte, error) {
 	return bmha.BMTransLayer.Pack()
 }
 
-func (bmha *BMHelloACK) String() string  {
-	s:=bmha.BMTransLayer.HeadString()
+func (bmha *BMHelloACK) String() string {
+	s := bmha.BMTransLayer.HeadString()
 
-	s+=base58.Encode(bmha.sn)
+	s += base58.Encode(bmha.sn)
 
 	return s
 }
-
 
 func (bmha *BMHelloACK) UnPack(data []byte) (int, error) {
 

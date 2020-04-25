@@ -1,11 +1,13 @@
 package test
 
 import (
+	crand "crypto/rand"
+	"crypto/rsa"
 	"fmt"
 	"github.com/BASChain/go-bmail-protocol/bmprotocol"
 	"github.com/BASChain/go-bmail-protocol/translayer"
-	"testing"
 	"math/rand"
+	"testing"
 )
 
 func Test_BHello(t *testing.T) {
@@ -35,7 +37,7 @@ func Test_BHello(t *testing.T) {
 
 }
 
-func Test_BMHelloACK(t *testing.T)  {
+func Test_BMHelloACK(t *testing.T) {
 	sn := make([]byte, 32)
 
 	for {
@@ -46,17 +48,17 @@ func Test_BMHelloACK(t *testing.T)  {
 		break
 	}
 
-	bmha:=bmprotocol.NewBMHelloACK(sn)
+	bmha := bmprotocol.NewBMHelloACK(sn)
 
 	fmt.Println(bmha.String())
 
-	data,_:=bmha.Pack()
+	data, _ := bmha.Pack()
 
 	//fmt.Println(hex.EncodeToString(data))
 
-	bmtl:=&translayer.BMTransLayer{}
+	bmtl := &translayer.BMTransLayer{}
 
-	offset,_:=bmtl.UnPack(data)
+	offset, _ := bmtl.UnPack(data)
 
 	fmt.Println(offset)
 
@@ -66,10 +68,23 @@ func Test_BMHelloACK(t *testing.T)  {
 
 	fmt.Println(bmhaUnPack.String())
 
-	if bmha.String() == bmhaUnPack.String(){
+	if bmha.String() == bmhaUnPack.String() {
 		t.Log("pass")
-	}else {
+	} else {
 		t.Fatal("failed")
 	}
+
+}
+
+func Test_SendSignature(t *testing.T) {
+	rsapriv, _ := rsa.GenerateKey(crand.Reader, 2048)
+
+	pub := &rsapriv.PublicKey
+
+	fmt.Println(pub)
+
+}
+
+func Test_ValidateSignature(t *testing.T) {
 
 }
