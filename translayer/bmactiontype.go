@@ -21,15 +21,27 @@ func (bmtl *BMTransLayer) GetData() []byte {
 	return bmtl.data
 }
 
+func (bmtl *BMTransLayer) SetData(data []byte) {
+	bmtl.data =data
+}
+
+
 func (bmtl *BMTransLayer) String() string {
-	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
-	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
-	s += fmt.Sprintf("MsgType: %-4d\r\n", bmtl.cryptType)
+	s:=bmtl.HeadString()
 
 	s += fmt.Sprintf("%s", base58.Encode(bmtl.data))
 
 	return s
 }
+
+func (bmtl *BMTransLayer) HeadString() string {
+	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
+	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
+	s += fmt.Sprintf("MsgType: %-4d\r\n", bmtl.cryptType)
+
+	return s
+}
+
 
 func NewBMTL(typ uint16, data []byte) *BMTransLayer {
 	bmtl := &BMTransLayer{}
@@ -83,13 +95,13 @@ func (bmtl *BMTransLayer) Pack() ([]byte, error) {
 	bufl = UInt16ToBuf(uint16(bmtl.typ))
 	r = append(r, bufl...)
 
+	l := uint32(len(bmtl.data))
+
+	bufl = UInt32ToBuf(uint32(l))
+
+	r = append(r, bufl...)
+
 	if len(bmtl.data) > 0 {
-		l := uint32(len(bmtl.data))
-
-		bufl := UInt32ToBuf(uint32(l))
-
-		r = append(r, bufl...)
-
 		r = append(r, bmtl.data...)
 	}
 
@@ -102,9 +114,11 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("Not a BMail Action Data")
 	}
 
+
 	offset := 0
 	bmtl.ver = binary.BigEndian.Uint16(data[offset:])
 	offset += 2
+
 
 	bmtl.cryptType = binary.BigEndian.Uint16(data[offset:])
 	offset += 2
@@ -116,6 +130,7 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("BMail Action Type Error")
 	}
 
+
 	l := binary.BigEndian.Uint32(data[offset:])
 	offset += 4
 
@@ -125,5 +140,5 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 		return 0, errors.New("Data Length Error")
 	}
 
-	return offset + len(bmtl.data), nil
+	return offset , nil
 }

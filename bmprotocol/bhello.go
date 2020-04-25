@@ -5,19 +5,23 @@ import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/kprc/nbsnetwork/tools"
 	"github.com/pkg/errors"
+	"github.com/btcsuite/btcutil/base58"
 )
 
 type BMHello struct {
+	translayer.BMTransLayer
 }
 
 func NewBMHello() *BMHello {
-	return &BMHello{}
+	bmtl := translayer.NewBMTL(translayer.HELLO, nil)
+	bmh:=&BMHello{}
+	bmh.BMTransLayer = *bmtl
+
+	return bmh
 }
 
 func (bmh *BMHello) Pack() ([]byte, error) {
-	bmact := translayer.NewBMTL(translayer.HELLO, nil)
-
-	return bmact.Pack()
+	return bmh.BMTransLayer.Pack()
 }
 
 func (bmh *BMHello) UnPack(data []byte) (int, error) {
@@ -25,12 +29,25 @@ func (bmh *BMHello) UnPack(data []byte) (int, error) {
 	return 0, nil
 }
 
+func (bmh *BMHello)String() string  {
+	return bmh.BMTransLayer.String()
+}
+
 type BMHelloACK struct {
+	translayer.BMTransLayer
 	sn []byte
 }
 
 func NewBMHelloACK(sn []byte) *BMHelloACK {
-	return &BMHelloACK{}
+	bmact := translayer.NewBMTL(translayer.HELLO_ACK, nil)
+
+	bmhack:= &BMHelloACK{}
+
+	bmhack.BMTransLayer = *bmact
+
+	bmhack.sn =sn
+
+	return bmhack
 }
 
 func (bmha *BMHelloACK) Pack() ([]byte, error) {
@@ -41,10 +58,19 @@ func (bmha *BMHelloACK) Pack() ([]byte, error) {
 	barr = append(barr, bufl...)
 	barr = append(barr, bmha.sn...)
 
-	bmact := translayer.NewBMTL(translayer.HELLO_ACK, barr)
+	bmha.BMTransLayer.SetData(barr)
 
-	return bmact.Pack()
+	return bmha.BMTransLayer.Pack()
 }
+
+func (bmha *BMHelloACK) String() string  {
+	s:=bmha.BMTransLayer.HeadString()
+
+	s+=base58.Encode(bmha.sn)
+
+	return s
+}
+
 
 func (bmha *BMHelloACK) UnPack(data []byte) (int, error) {
 
@@ -85,6 +111,7 @@ if bmtl.typ == SEND_SIGNATURE{
 */
 
 type SendSignature struct {
+	translayer.BMTransLayer
 	sn            []byte
 	localMailAddr string
 	currentTime   int64 //Millisecond
@@ -96,6 +123,10 @@ func NewSendSignature(sn []byte, localMailAddr string) *SendSignature {
 	ss.sn = sn
 	ss.localMailAddr = localMailAddr
 	ss.currentTime = tools.GetNowMsTime()
+
+	bmtl := translayer.NewBMTL(translayer.SEND_SIGNATURE, nil)
+
+	ss.BMTransLayer = *bmtl
 
 	return ss
 }
@@ -135,9 +166,9 @@ func (ss *SendSignature) Pack() ([]byte, error) {
 
 	r = append(r, ss.sig...)
 
-	bmact := translayer.NewBMTL(translayer.SEND_SIGNATURE, r)
+	ss.BMTransLayer.SetData(r)
 
-	return bmact.Pack()
+	return ss.BMTransLayer.Pack()
 }
 
 func (ss *SendSignature) UnPack(buf []byte) (int, error) {
