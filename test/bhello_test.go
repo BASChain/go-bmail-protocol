@@ -60,10 +60,9 @@ func Test_BMHelloACK(t *testing.T) {
 
 	offset, _ := bmtl.UnPack(data)
 
-	fmt.Println(offset)
-
 	bmhaUnPack := &bmprotocol.BMHelloACK{}
 	bmhaUnPack.BMTransLayer = *bmtl
+
 	bmhaUnPack.UnPack(data[offset:])
 
 	fmt.Println(bmhaUnPack.String())
@@ -142,7 +141,7 @@ func Test_ValidateSignature(t *testing.T) {
 		break
 	}
 
-	vs := bmprotocol.NewValidSign(sn)
+	vs := bmprotocol.NewValidSign(sn, bmprotocol.Validate_Success)
 
 	data, _ := vs.Pack()
 
@@ -152,7 +151,7 @@ func Test_ValidateSignature(t *testing.T) {
 
 	offset, _ := bmtl.UnPack(data)
 
-	vsUnPack := &bmprotocol.BMHelloACK{}
+	vsUnPack := &bmprotocol.ValidateSignature{}
 	vsUnPack.BMTransLayer = *bmtl
 	vsUnPack.UnPack(data[offset:])
 
