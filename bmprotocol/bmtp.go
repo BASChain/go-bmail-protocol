@@ -442,7 +442,7 @@ func (ec *EnvelopeContent) UnPack(data []byte) (int, error) {
 	offset += of
 
 	var sbj string
-	sbj, of, err = UnPackShortString(data[offset:])
+	sbj, of, err = UnPackLongString(data[offset:])
 	if err != nil {
 		return 0, err
 	}
@@ -451,7 +451,7 @@ func (ec *EnvelopeContent) UnPack(data []byte) (int, error) {
 	offset += of
 
 	var ed string
-	ed, of, err = UnPackShortString(data[offset:])
+	ed, of, err = UnPackLongString(data[offset:])
 
 	ec.Data = ed
 	offset += of
