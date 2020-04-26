@@ -5,9 +5,13 @@ import (
 	"fmt"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/kprc/nbsnetwork/tools"
 	"github.com/pkg/errors"
+	"time"
 )
+
+func GetNowMsTime() int64 {
+	return time.Now().UnixNano() / 1e6
+}
 
 type BMHello struct {
 	translayer.BMTransLayer
@@ -122,7 +126,7 @@ func NewSendSignature(sn []byte, localMailAddr string) *SendSignature {
 	ss := &SendSignature{}
 	ss.sn = sn
 	ss.localMailAddr = localMailAddr
-	ss.currentTime = tools.GetNowMsTime()
+	ss.currentTime = GetNowMsTime()
 
 	bmtl := translayer.NewBMTL(translayer.SEND_SIGNATURE, nil)
 
@@ -305,5 +309,5 @@ func (vs *ValidateSignature) UnPack(data []byte) (int, error) {
 		return 0, errors.New("Serial Nunber Error")
 	}
 
-	return translayer.Uint16Size + len(vs.sn), nil
+	return offset, nil
 }
