@@ -3,7 +3,9 @@ package bmprotocol
 import (
 	"encoding/binary"
 	"errors"
+	"fmt"
 	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/btcsuite/btcutil/base58"
 	"strconv"
 )
 
@@ -21,6 +23,14 @@ type EnvelopeHead struct {
 	From     string
 	RecpAddr string //recipient
 	LPubKey  []byte //local public key
+}
+
+func (eh *EnvelopeHead) String() string {
+	s := fmt.Sprintf("%-20s", eh.From)
+	s += fmt.Sprintf("%-20s", eh.RecpAddr)
+	s += fmt.Sprintf("%-50s", base58.Encode(eh.LPubKey))
+
+	return s
 }
 
 func (eh *EnvelopeHead) Pack() ([]byte, error) {
@@ -100,6 +110,43 @@ type EnvelopeContent struct {
 	BC      []string
 	Subject string
 	Data    string
+}
+
+func (ec *EnvelopeContent) String() string {
+	s := "to: "
+	for i := 0; i < len(ec.To); i++ {
+		s += fmt.Sprintf("%-20s", ec.To[i])
+	}
+	if len(ec.To) > 0 {
+		s += "\r\n"
+	}
+
+	s += "cc: "
+	for i := 0; i < len(ec.CC); i++ {
+		s += fmt.Sprintf("%-20s", ec.CC[i])
+	}
+
+	if len(ec.CC) > 0 {
+		s += "\r\n"
+	}
+
+	s += "bc: "
+	for i := 0; i < len(ec.BC); i++ {
+		s += fmt.Sprintf("%-20s", ec.BC[i])
+	}
+
+	if len(ec.BC) > 0 {
+		s += "\r\n"
+	}
+
+	s += "subject: "
+	s += fmt.Sprintf("%-50s\r\n", ec.Subject)
+
+	s += "data: "
+
+	s += fmt.Sprintf("%s\r\n", ec.Data)
+
+	return s
 }
 
 func PackShortString(s string) ([]byte, error) {
@@ -417,6 +464,13 @@ type EnvelopeTail struct {
 	Sig []byte //signature
 }
 
+func (et *EnvelopeTail) String() string {
+	s := fmt.Sprintf("%-50s", base58.Encode(et.IV))
+	s += fmt.Sprintf("%s", base58.Encode(et.Sig))
+
+	return s
+}
+
 func (ee *EnvelopeTail) Pack() ([]byte, error) {
 	if len(ee.IV) == 0 || len(ee.Sig) == 0 {
 		return nil, errors.New("Not a Correct Envelope Tail")
@@ -469,6 +523,17 @@ type SendEnvelope struct {
 	EnvelopeHead
 	CipherTxt []byte //crypt from EnvelopeContent
 	EnvelopeTail
+}
+
+func (se *SendEnvelope) String() string {
+	s := se.BMTransLayer.HeadString()
+	s += se.EnvelopeHead.String()
+	s += "\r\n"
+	s += base58.Encode(se.CipherTxt)
+	s += "\r\n"
+	s += se.EnvelopeTail.String()
+
+	return s
 }
 
 func NewSendEnvelope() *SendEnvelope {
@@ -547,10 +612,17 @@ func (se *SendEnvelope) UnPack(data []byte) (int, error) {
 //server -> client
 type RespSendEnvelope struct {
 	translayer.BMTransLayer
-	From     string
-	RecpAddr string //recipient
-	LAddr    []byte //local public key
-	IV       []byte //same as SendEnvelope
+	EnvelopeHead
+	IV []byte //same as SendEnvelope
+}
+
+func (rse *RespSendEnvelope) String() string {
+	s := rse.BMTransLayer.HeadString()
+	eh := &rse.EnvelopeHead
+	s += eh.String()
+	s += "\r\n"
+	s += base58.Encode(rse.IV)
+	return s
 }
 
 func NewRespSendEnvelope() *RespSendEnvelope {
@@ -565,30 +637,22 @@ func NewRespSendEnvelope() *RespSendEnvelope {
 
 func (rse *RespSendEnvelope) Pack() ([]byte, error) {
 
-	if rse.From == "" || rse.RecpAddr == "" || len(rse.LAddr) == 0 || len(rse.IV) == 0 {
-		return nil, errors.New("Response to Send Envelope Member no value")
+	if len(rse.IV) == 0 {
+		return nil, errors.New("IV is not set")
 	}
 
-	var r []byte
-	from, err := PackShortString(rse.From)
+	var (
+		r, tmp []byte
+		err    error
+	)
+
+	eh := &rse.EnvelopeHead
+	tmp, err = eh.Pack()
 	if err != nil {
 		return nil, err
 	}
-	r = append(r, from...)
 
-	var recp []byte
-	recp, err = PackShortString(rse.RecpAddr)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, recp...)
-
-	var pub []byte
-	pub, err = PackShortBytes(rse.LAddr)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, pub...)
+	r = append(r, tmp...)
 
 	var iv []byte
 	iv, err = PackShortBytes(rse.IV)
@@ -608,21 +672,9 @@ func (rse *RespSendEnvelope) UnPack(data []byte) (int, error) {
 		err error
 	)
 	offset := 0
-	rse.From, l, err = UnPackShortString(data[offset:])
-	if err != nil {
-		return 0, err
-	}
+	eh := &rse.EnvelopeHead
 
-	offset += l
-
-	rse.RecpAddr, l, err = UnPackShortString(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-
-	offset += l
-
-	rse.LAddr, l, err = UnPackShortBytes(data[offset:])
+	l, err = eh.UnPack(data[offset:])
 	if err != nil {
 		return 0, err
 	}
@@ -646,6 +698,19 @@ type SendEnvelopeFail struct {
 	CipherTxt []byte //encrypt from EnvelopeContent
 	EnvelopeTail
 	ErrorCode int
+}
+
+func (sef *SendEnvelopeFail) String() string {
+	s := sef.BMTransLayer.HeadString()
+	s += sef.EnvelopeHead.String()
+	s += "\r\n"
+	s += base58.Encode(sef.CipherTxt)
+	s += "\r\n"
+	s += sef.EnvelopeTail.String()
+	s += "\r\n"
+	s += strconv.Itoa(sef.ErrorCode)
+
+	return s
 }
 
 func NewSendEnvelopeFail() *SendEnvelopeFail {
@@ -741,6 +806,15 @@ type RespSendEnvelopeFail struct {
 	translayer.BMTransLayer
 	EnvelopeHead
 	IV []byte
+}
+
+func (rsef *RespSendEnvelopeFail) String() string {
+	s := rsef.BMTransLayer.HeadString()
+	eh := &rsef.EnvelopeHead
+	s += eh.String()
+	s += "\r\n"
+	s += base58.Encode(rsef.IV)
+	return s
 }
 
 func NewRespSendEnvelopeFail() *RespSendEnvelopeFail {
