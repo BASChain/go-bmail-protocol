@@ -236,24 +236,33 @@ func (ss *SendSignature) UnPack(buf []byte) (int, error) {
 
 }
 
+const (
+	Validate_Success uint8 = iota
+	Validate_Failure
+)
+
 type ValidateSignature struct {
 	translayer.BMTransLayer
-	sn []byte
+	sn        []byte
+	errorCode uint8
 }
 
-func NewValidSign(sn []byte) *ValidateSignature {
+func NewValidSign(sn []byte, errorCode uint8) *ValidateSignature {
 	vs := &ValidateSignature{}
 	bmact := translayer.NewBMTL(translayer.VALIDATE_SIGNATURE, nil)
 
 	vs.BMTransLayer = *bmact
 
 	vs.sn = sn
+	vs.errorCode = errorCode
 
 	return vs
 }
 
 func (vs *ValidateSignature) String() string {
 	s := vs.BMTransLayer.HeadString()
+
+	s += fmt.Sprintf("ErrorCode: %-4d", vs.errorCode)
 
 	s += fmt.Sprintf("sn: %s", base58.Encode(vs.sn))
 
@@ -268,6 +277,8 @@ func (vs *ValidateSignature) Pack() ([]byte, error) {
 	barr = append(barr, bufl...)
 	barr = append(barr, vs.sn...)
 
+	barr = append(barr, vs.errorCode)
+
 	vs.BMTransLayer.SetData(barr)
 
 	return vs.BMTransLayer.Pack()
@@ -280,8 +291,15 @@ func (vs *ValidateSignature) UnPack(data []byte) (int, error) {
 	}
 
 	l := binary.BigEndian.Uint16(data)
+	offset := translayer.Uint16Size
 
-	vs.sn = data[translayer.Uint16Size:]
+	vs.sn = data[offset : offset+int(l)]
+
+	offset += int(l)
+
+	vs.errorCode = data[offset]
+
+	offset += 1
 
 	if l != uint16(len(vs.sn)) {
 		return 0, errors.New("Serial Nunber Error")
