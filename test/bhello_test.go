@@ -52,11 +52,9 @@ func Test_BMHelloACK(t *testing.T) {
 
 	bmha := bmprotocol.NewBMHelloACK(sn)
 
-	fmt.Println(bmha.String())
-
 	data, _ := bmha.Pack()
 
-	//fmt.Println(hex.EncodeToString(data))
+	fmt.Println(bmha.String())
 
 	bmtl := &translayer.BMTransLayer{}
 
@@ -103,9 +101,9 @@ func Test_SendSignature(t *testing.T) {
 
 	ss.SetSig(sig)
 
-	fmt.Println(ss.String())
-
 	data, _ := ss.Pack()
+
+	fmt.Println(ss.String())
 
 	bmtl := &translayer.BMTransLayer{}
 
@@ -133,6 +131,7 @@ func Test_SendSignature(t *testing.T) {
 }
 
 func Test_ValidateSignature(t *testing.T) {
+
 	sn := make([]byte, 32)
 
 	for {
@@ -145,17 +144,13 @@ func Test_ValidateSignature(t *testing.T) {
 
 	vs := bmprotocol.NewValidSign(sn)
 
-	fmt.Println(vs.String())
-
 	data, _ := vs.Pack()
 
-	//fmt.Println(hex.EncodeToString(data))
+	fmt.Println(vs.String())
 
 	bmtl := &translayer.BMTransLayer{}
 
 	offset, _ := bmtl.UnPack(data)
-
-	//fmt.Println(offset)
 
 	vsUnPack := &bmprotocol.BMHelloACK{}
 	vsUnPack.BMTransLayer = *bmtl

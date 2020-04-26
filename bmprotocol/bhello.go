@@ -74,19 +74,19 @@ func (bmha *BMHelloACK) String() string {
 
 func (bmha *BMHelloACK) UnPack(data []byte) (int, error) {
 
-	if len(data) < 2 {
+	if len(data) < translayer.Uint16Size {
 		return 0, errors.New("Not a HELLO ACK data")
 	}
 
 	l := binary.BigEndian.Uint16(data)
 
-	bmha.sn = data[2:]
+	bmha.sn = data[translayer.Uint16Size:]
 
 	if l != uint16(len(bmha.sn)) {
 		return 0, errors.New("Serial Nunber Error")
 	}
 
-	return 2 + len(bmha.sn), nil
+	return translayer.Uint16Size + len(bmha.sn), nil
 }
 
 /*
@@ -192,40 +192,40 @@ func (ss *SendSignature) Pack() ([]byte, error) {
 func (ss *SendSignature) UnPack(buf []byte) (int, error) {
 	offset := 0
 
-	if len(buf[offset:]) < 2 {
+	if len(buf[offset:]) < translayer.Uint16Size {
 		return 0, errors.New("Not a SendSignature data")
 	}
 
 	lsn := binary.BigEndian.Uint16(buf[offset:])
-	offset += 2
+	offset += translayer.Uint16Size
 	if len(buf) < offset+int(lsn) {
 		return 0, errors.New("Not a SendSignature data")
 	}
 	ss.sn = buf[offset : offset+int(lsn)]
 	offset += int(lsn)
 
-	if len(buf[offset:]) < 2 {
+	if len(buf[offset:]) < translayer.Uint16Size {
 		return 0, errors.New("Not a SendSignature data")
 	}
 	laddr := binary.BigEndian.Uint16(buf[offset:])
-	offset += 2
+	offset += translayer.Uint16Size
 	if len(buf) < offset+int(laddr) {
 		return 0, errors.New("Not a SendSignature data")
 	}
 	ss.localMailAddr = string(buf[offset : offset+int(laddr)])
 	offset += int(laddr)
-	if len(buf[offset:]) < 8 {
+	if len(buf[offset:]) < translayer.Uint64Size {
 		return 0, errors.New("Not a SendSignature data")
 	}
 	ss.currentTime = int64(binary.BigEndian.Uint64(buf[offset:]))
-	offset += 8
+	offset += translayer.Uint64Size
 
-	if len(buf[offset:]) < 2 {
+	if len(buf[offset:]) < translayer.Uint16Size {
 		return 0, errors.New("Not a SendSignature data")
 	}
 
 	lsig := binary.BigEndian.Uint16(buf[offset:])
-	offset += 2
+	offset += translayer.Uint16Size
 	if len(buf) < offset+int(lsig) {
 		return 0, errors.New("Not a SendSignature data")
 	}
@@ -275,17 +275,17 @@ func (vs *ValidateSignature) Pack() ([]byte, error) {
 
 func (vs *ValidateSignature) UnPack(data []byte) (int, error) {
 
-	if len(data) < 2 {
+	if len(data) < translayer.Uint16Size {
 		return 0, errors.New("Not a Validate Signature data")
 	}
 
 	l := binary.BigEndian.Uint16(data)
 
-	vs.sn = data[2:]
+	vs.sn = data[translayer.Uint16Size:]
 
 	if l != uint16(len(vs.sn)) {
 		return 0, errors.New("Serial Nunber Error")
 	}
 
-	return 2 + len(vs.sn), nil
+	return translayer.Uint16Size + len(vs.sn), nil
 }
