@@ -2,10 +2,10 @@ package bmprotocol
 
 import (
 	"encoding/binary"
+	"errors"
 	"fmt"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
-	"github.com/pkg/errors"
 	"time"
 )
 

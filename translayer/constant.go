@@ -30,7 +30,6 @@ const (
 const (
 	Uin8Size   int = 1
 	Uint16Size int = 2
-	UintSize   int = 4
 	Uint32Size int = 4
 	Uint64Size int = 8
 )
