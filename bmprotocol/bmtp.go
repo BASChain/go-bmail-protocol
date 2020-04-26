@@ -367,6 +367,10 @@ func UnPackLongStringArray(data []byte) ([]string, int, error) {
 	return rs, offset, nil
 }
 
+func (ec *EnvelopeContent) ForCrypt() ([]byte, error) {
+	return ec.Pack()
+}
+
 func (ec *EnvelopeContent) Pack() ([]byte, error) {
 
 	if len(ec.To) == 0 || len(ec.Subject) == 0 {
