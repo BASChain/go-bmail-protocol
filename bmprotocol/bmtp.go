@@ -553,8 +553,90 @@ type RespSendEnvelope struct {
 	IV       []byte //same as SendEnvelope
 }
 
+func NewRespSendEnvelope() *RespSendEnvelope {
+	rse := &RespSendEnvelope{}
+
+	bmact := translayer.NewBMTL(translayer.RESP_ENVELOPE, nil)
+
+	rse.BMTransLayer = *bmact
+
+	return rse
+}
+
 func (rse *RespSendEnvelope) Pack() ([]byte, error) {
-	return nil, nil
+
+	if rse.From == "" || rse.RecpAddr == "" || len(rse.LAddr) == 0 || len(rse.IV) == 0 {
+		return nil, errors.New("Response to Send Envelope Member no value")
+	}
+
+	var r []byte
+	from, err := PackShortString(rse.From)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, from...)
+
+	var recp []byte
+	recp, err = PackShortString(rse.RecpAddr)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, recp...)
+
+	var pub []byte
+	pub, err = PackShortBytes(rse.LAddr)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, pub...)
+
+	var iv []byte
+	iv, err = PackShortBytes(rse.IV)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, iv...)
+
+	rse.BMTransLayer.SetData(r)
+
+	return rse.BMTransLayer.Pack()
+}
+
+func (rse *RespSendEnvelope) UnPack(data []byte) (int, error) {
+	var (
+		l   int
+		err error
+	)
+	offset := 0
+	rse.From, l, err = UnPackShortString(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	rse.RecpAddr, l, err = UnPackShortString(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	rse.LAddr, l, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	rse.IV, l, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += l
+
+	return offset, nil
+
 }
 
 //server -> client
@@ -566,9 +648,161 @@ type SendEnvelopeFail struct {
 	ErrorCode int
 }
 
+func NewSendEnvelopeFail() *SendEnvelopeFail {
+	sef := &SendEnvelopeFail{}
+
+	bmact := translayer.NewBMTL(translayer.SEND_ENVELOPE_FAILED, nil)
+
+	sef.BMTransLayer = *bmact
+
+	return sef
+}
+
+func (sef *SendEnvelopeFail) Pack() ([]byte, error) {
+	if len(sef.CipherTxt) == 0 {
+		return nil, errors.New("Cipher Text is not set")
+	}
+	var (
+		r, tmp []byte
+		err    error
+	)
+
+	eh := &sef.EnvelopeHead
+
+	tmp, err = eh.Pack()
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp, err = PackLongBytes(sef.CipherTxt)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	et := &sef.EnvelopeTail
+
+	tmp, err = et.Pack()
+	if err != nil {
+		return nil, err
+	}
+
+	r = append(r, tmp...)
+
+	bufl := translayer.UInt32ToBuf(uint32(sef.ErrorCode))
+
+	r = append(r, bufl...)
+
+	sef.BMTransLayer.SetData(r)
+
+	return sef.BMTransLayer.Pack()
+}
+
+func (sef *SendEnvelopeFail) UnPack(data []byte) (int, error) {
+	var (
+		offset, l int
+		err       error
+	)
+
+	eh := &sef.EnvelopeHead
+	l, err = eh.UnPack(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	sef.CipherTxt, l, err = UnPackLongBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	et := &sef.EnvelopeTail
+	l, err = et.UnPack(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	sef.ErrorCode = int(binary.BigEndian.Uint32(data[offset:]))
+
+	offset += translayer.Uint32Size
+
+	return offset, nil
+
+}
+
 //client -> server
 type RespSendEnvelopeFail struct {
 	translayer.BMTransLayer
 	EnvelopeHead
 	IV []byte
+}
+
+func NewRespSendEnvelopeFail() *RespSendEnvelopeFail {
+	rsef := &RespSendEnvelopeFail{}
+	bmact := translayer.NewBMTL(translayer.RESP_SEND_ENVELOPE_FAILED, nil)
+
+	rsef.BMTransLayer = *bmact
+
+	return rsef
+}
+
+func (rsef *RespSendEnvelopeFail) Pack() ([]byte, error) {
+	if len(rsef.IV) == 0 {
+		return nil, errors.New("IV is not set")
+	}
+
+	var (
+		r, tmp []byte
+		err    error
+	)
+
+	eh := &rsef.EnvelopeHead
+	tmp, err = eh.Pack()
+	if err != nil {
+		return nil, err
+	}
+
+	r = append(r, tmp...)
+
+	tmp, err = PackShortBytes(rsef.IV)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	rsef.BMTransLayer.SetData(r)
+
+	return rsef.BMTransLayer.Pack()
+}
+
+func (rsef *RespSendEnvelopeFail) UnPack(data []byte) (int, error) {
+
+	var (
+		offset, l int
+		err       error
+	)
+	eh := &rsef.EnvelopeHead
+
+	l, err = eh.UnPack(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	rsef.IV, l, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += l
+
+	return offset, nil
+
 }
