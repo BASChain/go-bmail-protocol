@@ -33,4 +33,3 @@ const (
 	Uint32Size int = 4
 	Uint64Size int = 8
 )
-

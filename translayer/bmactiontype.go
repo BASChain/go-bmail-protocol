@@ -141,6 +141,21 @@ func (bmtl *BMTransLayer) Pack() ([]byte, error) {
 
 func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 
+	offset, err := bmtl.UnPackHead(data)
+	if err != nil {
+		return 0, err
+	}
+
+	if len(data) != offset+int(bmtl.dataLen) {
+		return 0, errors.New("Data Length Error")
+	}
+
+	bmtl.data = data[offset:]
+
+	return offset, nil
+}
+
+func (bmtl *BMTransLayer) UnPackHead(data []byte) (int, error) {
 	if len(data) < BMHeadSize() {
 		return 0, errors.New("Not a BMail Action Data")
 	}
@@ -163,12 +178,6 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 	offset += Uint32Size
 
 	bmtl.dataLen = l
-
-	bmtl.data = data[offset:]
-
-	if l != uint32(len(bmtl.data)) {
-		return 0, errors.New("Data Length Error")
-	}
 
 	return offset, nil
 }

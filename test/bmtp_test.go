@@ -180,7 +180,7 @@ func Test_SendEnvelope(t *testing.T) {
 	seUnpack := &bmprotocol.SendEnvelope{}
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPack(data)
+	n, _ := bmtl.UnPackHead(data)
 
 	seUnpack.BMTransLayer = *bmtl
 
@@ -220,7 +220,7 @@ func Test_RespSendEnvelope(t *testing.T) {
 	rseUnpack := &bmprotocol.RespSendEnvelope{}
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPack(data)
+	n, _ := bmtl.UnPackHead(data)
 
 	rseUnpack.BMTransLayer = *bmtl
 
@@ -266,7 +266,7 @@ func Test_SendEnvelopeFail(t *testing.T) {
 	fmt.Println(sef.String())
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPack(data)
+	n, _ := bmtl.UnPackHead(data)
 
 	sefUnpack := &bmprotocol.SendEnvelopeFail{}
 	sefUnpack.BMTransLayer = *bmtl
@@ -303,7 +303,7 @@ func Test_RespSendEnvelopeFail(t *testing.T) {
 	fmt.Println(rsef.String())
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPack(data)
+	n, _ := bmtl.UnPackHead(data)
 	rsefunPack := &bmprotocol.RespSendEnvelopeFail{}
 	rsefunPack.BMTransLayer = *bmtl
 	rsefunPack.UnPack(data[n:])
