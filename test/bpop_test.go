@@ -259,3 +259,90 @@ func Test_BPOPRetrResp(t *testing.T) {
 	}
 
 }
+
+func Test_BPOPDelete(t *testing.T) {
+	bd := bmprotocol.NewBPOPDelete()
+	bd.Section = []bmprotocol.DelSection{
+		{200, 0}, {230, 239}, {190, 0},
+	}
+
+	iv := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(iv)
+		if n != len(iv) {
+			continue
+		}
+		break
+	}
+
+	sig := make([]byte, 32)
+
+	for {
+		n, _ := rand.Read(sig)
+		if n != len(sig) {
+			continue
+		}
+		break
+	}
+
+	bd.Sn = iv
+	bd.Sig = sig
+
+	data, _ := bd.Pack()
+	fmt.Println(bd.String())
+	bdunpack := &bmprotocol.BPOPDelete{}
+	bmtl := &translayer.BMTransLayer{}
+	offset, _ := bmtl.UnPackHead(data)
+
+	bdunpack.BMTransLayer = *bmtl
+	bdunpack.UnPack(data[offset:])
+
+	fmt.Println(bdunpack.String())
+
+	if bd.String() == bdunpack.String() {
+		t.Log("pass")
+	} else {
+		t.Fatal("failed")
+	}
+
+}
+
+func Test_BPOPDeleteResp(t *testing.T) {
+	bd := bmprotocol.NewBPOPDeleteResp()
+	bd.Result = []bmprotocol.DelSectionResult{
+		{bmprotocol.DelSection{200, 0}, 0},
+		{bmprotocol.DelSection{230, 239}, 0},
+		{bmprotocol.DelSection{190, 0}, 1},
+	}
+
+	iv := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(iv)
+		if n != len(iv) {
+			continue
+		}
+		break
+	}
+
+	bd.Sn = iv
+
+	data, _ := bd.Pack()
+	fmt.Println(bd.String())
+	bdunpack := &bmprotocol.BPOPDeleteResp{}
+	bmtl := &translayer.BMTransLayer{}
+	offset, _ := bmtl.UnPackHead(data)
+
+	bdunpack.BMTransLayer = *bmtl
+	bdunpack.UnPack(data[offset:])
+
+	fmt.Println(bdunpack.String())
+
+	if bd.String() == bdunpack.String() {
+		t.Log("pass")
+	} else {
+		t.Fatal("failed")
+	}
+
+}
