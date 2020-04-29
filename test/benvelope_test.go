@@ -135,7 +135,7 @@ func Test_EnvelopeTail(t *testing.T) {
 func Test_Envelop(t *testing.T) {
 	e := &bmprotocol.Envelope{}
 
-	eh:=&e.EnvelopeHead
+	eh := &e.EnvelopeHead
 
 	eh.From = "a@bas"
 	eh.RecpAddr = "b@bas"
@@ -183,7 +183,7 @@ func Test_Envelop(t *testing.T) {
 	ec.Files = []bmprotocol.Attachment{{"", bmprotocol.FileProperty{hash1, "name.doc", 0, 10200}},
 		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, 20400}}}
 
-	et:=&e.EnvelopeTail
+	et := &e.EnvelopeTail
 	iv := make([]byte, 16)
 
 	for {
@@ -207,7 +207,7 @@ func Test_Envelop(t *testing.T) {
 	et.IV = iv
 	et.Sig = sig
 
-	data,_:=e.Pack()
+	data, _ := e.Pack()
 	fmt.Println(e.String())
 
 	eunPack := &bmprotocol.Envelope{}
@@ -215,15 +215,15 @@ func Test_Envelop(t *testing.T) {
 
 	fmt.Println(eunPack.String())
 
-	if e.String() == eunPack.String(){
+	if e.String() == eunPack.String() {
 		t.Log("pass")
-	}else{
+	} else {
 		t.Fatal("failed")
 	}
 
 }
 
-func Test_CryptEnvelope(t *testing.T)  {
+func Test_CryptEnvelope(t *testing.T) {
 	crypttxt := make([]byte, 64)
 
 	for {
@@ -234,9 +234,9 @@ func Test_CryptEnvelope(t *testing.T)  {
 		break
 	}
 
-	ce:=&bmprotocol.CryptEnvelope{}
+	ce := &bmprotocol.CryptEnvelope{}
 	ce.CipherTxt = crypttxt
-	eh:=&ce.EnvelopeHead
+	eh := &ce.EnvelopeHead
 	eh.From = "a@bas"
 	eh.RecpAddr = "b@bas"
 	eh.RecpAddrType = 1
@@ -252,7 +252,7 @@ func Test_CryptEnvelope(t *testing.T)  {
 	}
 	eh.LPubKey = pubkey
 
-	et:=&ce.EnvelopeTail
+	et := &ce.EnvelopeTail
 
 	iv := make([]byte, 16)
 
@@ -279,16 +279,16 @@ func Test_CryptEnvelope(t *testing.T)  {
 
 	fmt.Println(ce.String())
 
-	data,_:=ce.Pack()
+	data, _ := ce.Pack()
 
-	ceUnpack:=&bmprotocol.CryptEnvelope{}
+	ceUnpack := &bmprotocol.CryptEnvelope{}
 	ceUnpack.UnPack(data)
 
 	fmt.Println(ceUnpack.String())
 
-	if ce.String() == ceUnpack.String(){
+	if ce.String() == ceUnpack.String() {
 		t.Log("pass")
-	}else{
+	} else {
 		t.Fatal("failed")
 	}
 

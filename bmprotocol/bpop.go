@@ -2,9 +2,9 @@ package bmprotocol
 
 import (
 	"encoding/binary"
+	"fmt"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/pkg/errors"
-	"fmt"
 )
 
 type BPOPStat struct {
@@ -37,12 +37,12 @@ type BPOPStatResp struct {
 	TotalSpaceBytes  int64
 }
 
-func (bs *BPOPStatResp)String() string  {
-	s:=bs.BMTransLayer.HeadString()
-	s+=fmt.Sprintf("%-10d",bs.Total)
-	s+=fmt.Sprintf("%-10d",bs.Received)
-	s+=fmt.Sprintf("%-20d",bs.TotalStoredBytes)
-	s+=fmt.Sprintf("%-20d",bs.TotalSpaceBytes)
+func (bs *BPOPStatResp) String() string {
+	s := bs.BMTransLayer.HeadString()
+	s += fmt.Sprintf("%-10d", bs.Total)
+	s += fmt.Sprintf("%-10d", bs.Received)
+	s += fmt.Sprintf("%-20d", bs.TotalStoredBytes)
+	s += fmt.Sprintf("%-20d", bs.TotalSpaceBytes)
 
 	return s
 }
@@ -131,10 +131,10 @@ func NewBPOPList() *BPOPList {
 	return bpl
 }
 
-func (bl *BPOPList)String() string  {
-	s:=bl.BMTransLayer.HeadString()
-	s += fmt.Sprintf("%-10d",bl.BeginID)
-	s += fmt.Sprintf("%-10d",bl.ListCount)
+func (bl *BPOPList) String() string {
+	s := bl.BMTransLayer.HeadString()
+	s += fmt.Sprintf("%-10d", bl.BeginID)
+	s += fmt.Sprintf("%-10d", bl.ListCount)
 
 	return s
 }
@@ -181,6 +181,13 @@ type ListNode struct {
 	SizeOfBytes int
 }
 
+func (ln *ListNode) String() string {
+	s := fmt.Sprintf("ID: %-10d", ln.ID)
+	s += fmt.Sprintf("SizeOfBytes: %-20d", ln.SizeOfBytes)
+
+	return s
+}
+
 func (ln *ListNode) Pack() ([]byte, error) {
 	var (
 		r, tmp []byte
@@ -208,7 +215,7 @@ func (ln *ListNode) UnPack(data []byte) (int, error) {
 	offset += translayer.Uint32Size
 
 	if len(data) < offset+translayer.Uint32Size {
-		return 0, errors.New("unpack ID error")
+		return 0, errors.New("unpack sizeofbytes error")
 	}
 
 	ln.SizeOfBytes = int(binary.BigEndian.Uint32(data[offset:]))
@@ -230,6 +237,19 @@ func NewBPOPListResp() *BPOPListResp {
 	bl.BMTransLayer = *bmtl
 
 	return bl
+}
+
+func (bl *BPOPListResp) String() string {
+	s := bl.BMTransLayer.HeadString()
+	s += fmt.Sprintf("BeginId %-10d", bl.BeginID)
+	s += fmt.Sprintf("ListCount: %-10d", bl.ListCount)
+	s += fmt.Sprintf("RealCount: %-10d\r\n", len(bl.Nodes))
+	for i := 0; i < len(bl.Nodes); i++ {
+		s += bl.Nodes[i].String()
+		s += "\r\n"
+	}
+
+	return s
 }
 
 func (bl *BPOPListResp) Pack() ([]byte, error) {
@@ -294,6 +314,7 @@ func (bl *BPOPListResp) UnPack(data []byte) (int, error) {
 		if err != nil {
 			return 0, err
 		}
+		bl.Nodes = append(bl.Nodes, n)
 		offset += of
 	}
 
@@ -314,6 +335,14 @@ func NewBPOPRetr() *BPOPRetr {
 	br.BMTransLayer = *bmtl
 
 	return br
+}
+
+func (br *BPOPRetr) String() string {
+	s := br.BMTransLayer.HeadString()
+	s += fmt.Sprintf("BeginId: %-10d", br.BeginID)
+	s += fmt.Sprintf("RetrCount: %-10d", br.RetrCount)
+
+	return s
 }
 
 func (br *BPOPRetr) Pack() ([]byte, error) {
@@ -366,6 +395,22 @@ func NewBPOPRetrResp() *BPOPRetrResp {
 	br.BMTransLayer = *bmtl
 
 	return br
+}
+
+func (br *BPOPRetrResp) String() string {
+	s:=br.BMTransLayer.HeadString()
+	s+=fmt.Sprintf("mails count:%-10d",len(br.Mails))
+	for i:=0;i<len(br.Mails);i++{
+		ce:=&br.Mails[i]
+
+		s+=ce.String()
+		s+="\r\n"
+	}
+	s+=fmt.Sprintf("beginid: %-10d",br.BeginID)
+	s+=fmt.Sprintf("RetrCount: %-10d",br.RetrCount)
+	s+=fmt.Sprintf("TotalCount: %-10d",br.TotalCount)
+
+	return s
 }
 
 func (br *BPOPRetrResp) Pack() ([]byte, error) {
