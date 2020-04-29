@@ -560,6 +560,17 @@ type Envelope struct {
 	EnvelopeTail
 }
 
+func (e *Envelope)String() string  {
+	s:=e.EnvelopeHead.String()
+	s+="\r\n"
+	s+=e.EnvelopeContent.String()
+	s+="\r\n"
+	s+=e.EnvelopeTail.String()
+
+	return s
+}
+
+
 func (e *Envelope) ForCrypt() ([]byte, error) {
 	var (
 		r, tmp []byte

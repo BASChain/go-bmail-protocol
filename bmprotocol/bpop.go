@@ -4,6 +4,7 @@ import (
 	"encoding/binary"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/pkg/errors"
+	"fmt"
 )
 
 type BPOPStat struct {
@@ -34,6 +35,16 @@ type BPOPStatResp struct {
 	Received         int
 	TotalStoredBytes int64
 	TotalSpaceBytes  int64
+}
+
+func (bs *BPOPStatResp)String() string  {
+	s:=bs.BMTransLayer.HeadString()
+	s+=fmt.Sprintf("%-10d",bs.Total)
+	s+=fmt.Sprintf("%-10d",bs.Received)
+	s+=fmt.Sprintf("%-20d",bs.TotalStoredBytes)
+	s+=fmt.Sprintf("%-20d",bs.TotalSpaceBytes)
+
+	return s
 }
 
 func NewBPOPStatResp() *BPOPStatResp {
@@ -110,7 +121,7 @@ type BPOPList struct {
 	ListCount int
 }
 
-func NewBOPList() *BPOPList {
+func NewBPOPList() *BPOPList {
 	bpl := &BPOPList{}
 
 	bmtl := translayer.NewBMTL(translayer.LIST, nil)
@@ -118,6 +129,14 @@ func NewBOPList() *BPOPList {
 	bpl.BMTransLayer = *bmtl
 
 	return bpl
+}
+
+func (bl *BPOPList)String() string  {
+	s:=bl.BMTransLayer.HeadString()
+	s += fmt.Sprintf("%-10d",bl.BeginID)
+	s += fmt.Sprintf("%-10d",bl.ListCount)
+
+	return s
 }
 
 func (bl *BPOPList) Pack() ([]byte, error) {
