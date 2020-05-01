@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/pkg/errors"
+	"reflect"
 )
 
 const BMAILVER1 uint16 = 1
@@ -16,6 +17,32 @@ type BMTransLayer struct {
 	typ       uint16
 	dataLen   uint32
 	data      []byte
+}
+
+func BMHeadSize() int {
+	rv := reflect.ValueOf(BMTransLayer{})
+
+	cnt := rv.NumField()
+
+	size := 0
+
+	for i := 0; i < cnt; i++ {
+		f := rv.Field(i)
+		switch f.Kind() {
+		case reflect.Uint16:
+			size += Uint16Size
+		case reflect.Uint8:
+			size += Uin8Size
+		case reflect.Uint32:
+			size += Uint32Size
+		case reflect.Uint64:
+			size += Uint64Size
+		case reflect.Slice:
+			size += 0
+		}
+	}
+
+	return size
 }
 
 
