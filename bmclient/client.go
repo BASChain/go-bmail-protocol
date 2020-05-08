@@ -43,7 +43,7 @@ func (c *BMClient) GetSn() []byte {
 	return c.sn
 }
 
-func (c *BMClient) SendEnvelope(envelope *bmprotocol.SendEnvelope, serverIP net.IP) (rse *bmprotocol.RespSendEnvelope, err error) {
+func (c *BMClient) SendEnvelope(envelope *bmprotocol.SendEnvelope) (rse *bmprotocol.RespSendEnvelope, err error) {
 	if c.c == nil {
 		return nil, errors.New("client is not initialized")
 	}
