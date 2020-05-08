@@ -56,6 +56,10 @@ func NewBMHelloACK(sn []byte) *BMHelloACK {
 	return bmhack
 }
 
+func (bmha *BMHelloACK) GetSn() []byte {
+	return bmha.sn
+}
+
 func (bmha *BMHelloACK) Pack() ([]byte, error) {
 
 	var (

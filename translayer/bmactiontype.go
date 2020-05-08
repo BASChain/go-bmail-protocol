@@ -43,6 +43,18 @@ func BMHeadSize() int {
 	return size
 }
 
+func (bmtl *BMTransLayer)GetVersion() uint16  {
+	return bmtl.ver
+}
+
+func (bmtl *BMTransLayer)GetCryptType() uint16  {
+	return bmtl.cryptType
+}
+
+func (bmtl *BMTransLayer)GetMsgType() uint16  {
+	return bmtl.typ
+}
+
 func (bmtl *BMTransLayer) String() string {
 	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
 	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
@@ -56,7 +68,7 @@ func (bmtl *BMTransLayer) SetDataLen(l uint32) {
 	bmtl.dataLen = l
 }
 
-func (bmtl *BMTransLayer) getDataLen() uint32 {
+func (bmtl *BMTransLayer) GetDataLen() uint32 {
 	return bmtl.dataLen
 }
 

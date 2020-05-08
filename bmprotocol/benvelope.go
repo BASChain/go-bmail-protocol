@@ -1,6 +1,7 @@
 package bmprotocol
 
 import (
+	"bytes"
 	"encoding/binary"
 	"errors"
 	"fmt"
@@ -22,6 +23,14 @@ var (
 	aesEncrypt func(plainBytes, iv, key []byte) []byte
 	aesDecrypt func(cipherText, key []byte) (iv []byte, plainBytes []byte)
 )
+
+func RegAesEncrypt(enc func(plainBytes, iv, key []byte) []byte) {
+	aesEncrypt = enc
+}
+
+func RegAesDecrypt(dec func(cipherText, key []byte) (iv []byte, plainBytes []byte)) {
+	aesDecrypt = dec
+}
 
 type EnvelopeHead struct {
 	From         string
@@ -598,8 +607,8 @@ func DeCodeEnvelope(ce *CryptEnvelope, key []byte) *Envelope {
 	es := &e.EnvelopeSig
 	(&ce.EnvelopeSig).CopyTo(es)
 
-	_, plaintxt := aesDecrypt(ce.CipherTxt, key)
-	if len(plaintxt) == 0 {
+	iv, plaintxt := aesDecrypt(ce.CipherTxt, key)
+	if len(plaintxt) == 0 || bytes.Compare(iv, ce.EnvelopeSig.Sn) == 0 {
 		return nil
 	}
 
