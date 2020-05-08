@@ -43,15 +43,15 @@ func BMHeadSize() int {
 	return size
 }
 
-func (bmtl *BMTransLayer)GetVersion() uint16  {
+func (bmtl *BMTransLayer) GetVersion() uint16 {
 	return bmtl.ver
 }
 
-func (bmtl *BMTransLayer)GetCryptType() uint16  {
+func (bmtl *BMTransLayer) GetCryptType() uint16 {
 	return bmtl.cryptType
 }
 
-func (bmtl *BMTransLayer)GetMsgType() uint16  {
+func (bmtl *BMTransLayer) GetMsgType() uint16 {
 	return bmtl.typ
 }
 

@@ -3,6 +3,7 @@ package bmprotocol
 import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
+	"strconv"
 )
 
 //client -> server
@@ -203,6 +204,8 @@ func (rse *RespSendEnvelope) String() string {
 	s += "NewSn:" + base58.Encode(rse.NewSn)
 	s += "\r\n"
 	s += base58.Encode(rse.EId[:])
+	s += "\r\n"
+	s += strconv.Itoa(rse.ErrId)
 	return s
 }
 
