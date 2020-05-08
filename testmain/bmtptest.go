@@ -1,44 +1,43 @@
 package main
 
 import (
-	"github.com/BASChain/go-bmail-protocol/bmclient"
 	"fmt"
-	"net"
+	"github.com/BASChain/go-bmail-protocol/bmclient"
 	"github.com/BASChain/go-bmail-protocol/bmprotocol"
 	"math/rand"
+	"net"
 )
 
-func main()  {
-	c:=bmclient.NewClient(net.ParseIP("39.99.198.143"),100)
-	if c == nil{
+func main() {
+	c := bmclient.NewClient(net.ParseIP("39.99.198.143"), 100)
+	if c == nil {
 		fmt.Println("connect to peer error")
 
 		return
 	}
 	defer c.Close()
 
-	err:= c.HeloSendAndRcv()
-	if err!=nil{
+	err := c.HeloSendAndRcv()
+	if err != nil {
 		fmt.Println(err)
 		return
 	}
 
-	se:=NewEnv()
+	se := NewEnv()
 	se.Sn = c.GetSn()
 
-	resp,err1:=c.SendEnvelope(se)
+	resp, err1 := c.SendEnvelope(se)
 
-	if err1 != nil{
+	if err1 != nil {
 		fmt.Println(err1)
 		return
 	}
 
-	if resp != nil{
+	if resp != nil {
 		fmt.Println(resp.String())
 	}
 
 }
-
 
 func fillEH(eh *bmprotocol.EnvelopeHead) {
 	eh.From = "a@bas"
@@ -54,6 +53,19 @@ func fillEH(eh *bmprotocol.EnvelopeHead) {
 		break
 	}
 	eh.LPubKey = pubkey
+
+	bid := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(bid)
+		if n != len(bid) {
+			continue
+		}
+		break
+	}
+
+	copy(eh.EId[:], bid)
+
 }
 
 func fillET(et *bmprotocol.EnvelopeSig) {
@@ -113,7 +125,7 @@ func fillEC(ec *bmprotocol.EnvelopeContent) {
 		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, 20400}}}
 }
 
-func NewEnv()*bmprotocol.SendEnvelope  {
+func NewEnv() *bmprotocol.SendEnvelope {
 	se := bmprotocol.NewSendEnvelope()
 
 	eh := &se.Envelope.EnvelopeHead
