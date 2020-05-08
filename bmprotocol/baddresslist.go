@@ -112,7 +112,7 @@ type CryptContactHello struct {
 func NewCryptContactHello()  *CryptContactHello {
 	cch:=&CryptContactHello{}
 
-	bmtl:=translayer.NewBMTL(translayer.CONTACT_HELLO,nil)
+	bmtl:=translayer.NewBMTL(translayer.CONTACT_HELLO)
 
 	cch.BMTransLayer = *bmtl
 
@@ -136,7 +136,7 @@ func (cm *CryptContactHello)SetCipherText(ct []byte)  {
 }
 
 func (cm *CryptContactHello)String() string  {
-	s:=cm.BMTransLayer.HeadString()
+	s:=cm.BMTransLayer.String()
 	s+=base58.Encode(cm.iv[:])
 	s+="\r\n"
 	s+=base58.Encode(cm.cipherText)
@@ -162,7 +162,7 @@ func (cm *CryptContactHello)Pack() ([]byte,error){
 	}
 	r = append(r,tmp...)
 
-	cm.BMTransLayer.SetData(r)
+	//cm.BMTransLayer.SetData(r)
 
 	return cm.BMTransLayer.Pack()
 
@@ -202,7 +202,7 @@ type ContactHelloResp struct {
 func NewContactHelloResp() *ContactHelloResp {
 	chr := &ContactHelloResp{}
 
-	bmtl := translayer.NewBMTL(translayer.CONTACT_HELLO_RESP,nil)
+	bmtl := translayer.NewBMTL(translayer.CONTACT_HELLO_RESP)
 	chr.BMTransLayer = *bmtl
 
 	for{
@@ -277,7 +277,7 @@ func (mr *ContactHelloResp)Pack() ([]byte,error){
 	}
 	r = append(r,tmp...)
 
-	mr.BMTransLayer.SetData(r)
+	//mr.BMTransLayer.SetData(r)
 
 	return mr.BMTransLayer.Pack()
 
@@ -678,7 +678,7 @@ func (cca *CryptContactAdd)SetCipherTxt(ct []byte)  {
 }
 
 func NewCryptContactAdd() *CryptContactAdd {
-	bmtl:=translayer.NewBMTL(translayer.CONTACT_ADD,nil)
+	bmtl:=translayer.NewBMTL(translayer.CONTACT_ADD)
 	cca:=&CryptContactAdd{}
 	cca.BMTransLayer = *bmtl
 
@@ -721,7 +721,7 @@ func (cca *CryptContactAdd) Pack() ([]byte,error) {
 	}
 	r = append(r,tmp...)
 
-	cca.BMTransLayer.SetData(r)
+	//cca.BMTransLayer.SetData(r)
 
 	return cca.BMTransLayer.Pack()
 

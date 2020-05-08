@@ -18,7 +18,7 @@ func Test_BMTransLayer(t *testing.T) {
 		break
 	}
 
-	bmtl := translayer.NewBMTL(translayer.HELLO, data)
+	bmtl := translayer.NewBMTL(translayer.HELLO)
 
 	fmt.Println(bmtl.String())
 
@@ -49,19 +49,19 @@ func Test_BMTransLayerHead(t *testing.T) {
 		break
 	}
 
-	bmtl := translayer.NewBMTL(translayer.HELLO, data)
+	bmtl := translayer.NewBMTL(translayer.HELLO)
 
-	fmt.Println(bmtl.HeadString())
+	fmt.Println(bmtl.String())
 
 	packData, _ := bmtl.Pack()
 
 	bmtlUnPack := &translayer.BMTransLayer{}
 
-	bmtlUnPack.UnPackHead(packData)
+	bmtlUnPack.UnPack(packData)
 
-	fmt.Println(bmtlUnPack.HeadString())
+	fmt.Println(bmtlUnPack.String())
 
-	if bmtl.HeadString() == bmtlUnPack.HeadString() {
+	if bmtl.String() == bmtlUnPack.String() {
 		t.Log("pass")
 	} else {
 		t.Fatal("Failed")

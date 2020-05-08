@@ -13,7 +13,7 @@ type BPOPStat struct {
 }
 
 func NewBPOPStat() *BPOPStat {
-	bmtl := translayer.NewBMTL(translayer.STAT, nil)
+	bmtl := translayer.NewBMTL(translayer.STAT)
 
 	bps := &BPOPStat{}
 
@@ -39,7 +39,7 @@ type BPOPStatResp struct {
 }
 
 func (bs *BPOPStatResp) String() string {
-	s := bs.BMTransLayer.HeadString()
+	s := bs.BMTransLayer.String()
 	s += fmt.Sprintf("%-10d", bs.Total)
 	s += fmt.Sprintf("%-10d", bs.Received)
 	s += fmt.Sprintf("%-20d", bs.TotalStoredBytes)
@@ -49,7 +49,7 @@ func (bs *BPOPStatResp) String() string {
 }
 
 func NewBPOPStatResp() *BPOPStatResp {
-	bmtl := translayer.NewBMTL(translayer.STAT_RESP, nil)
+	bmtl := translayer.NewBMTL(translayer.STAT_RESP)
 
 	bpsr := &BPOPStatResp{}
 
@@ -74,7 +74,7 @@ func (br *BPOPStatResp) Pack() ([]byte, error) {
 	tmp = translayer.UInt64ToBuf(uint64(br.TotalSpaceBytes))
 	r = append(r, tmp...)
 
-	br.BMTransLayer.SetData(r)
+	//br.BMTransLayer.SetData(r)
 
 	return br.BMTransLayer.Pack()
 }
@@ -125,7 +125,7 @@ type BPOPList struct {
 func NewBPOPList() *BPOPList {
 	bpl := &BPOPList{}
 
-	bmtl := translayer.NewBMTL(translayer.LIST, nil)
+	bmtl := translayer.NewBMTL(translayer.LIST)
 
 	bpl.BMTransLayer = *bmtl
 
@@ -133,7 +133,7 @@ func NewBPOPList() *BPOPList {
 }
 
 func (bl *BPOPList) String() string {
-	s := bl.BMTransLayer.HeadString()
+	s := bl.BMTransLayer.String()
 	s += fmt.Sprintf("%-10d", bl.BeginID)
 	s += fmt.Sprintf("%-10d", bl.ListCount)
 
@@ -151,7 +151,7 @@ func (bl *BPOPList) Pack() ([]byte, error) {
 	tmp = translayer.UInt32ToBuf(uint32(bl.ListCount))
 	r = append(r, tmp...)
 
-	bl.BMTransLayer.SetData(r)
+	//bl.BMTransLayer.SetData(r)
 
 	return bl.BMTransLayer.Pack()
 }
@@ -233,7 +233,7 @@ type BPOPListResp struct {
 }
 
 func NewBPOPListResp() *BPOPListResp {
-	bmtl := translayer.NewBMTL(translayer.LIST_RESP, nil)
+	bmtl := translayer.NewBMTL(translayer.LIST_RESP)
 	bl := &BPOPListResp{}
 	bl.BMTransLayer = *bmtl
 
@@ -241,7 +241,7 @@ func NewBPOPListResp() *BPOPListResp {
 }
 
 func (bl *BPOPListResp) String() string {
-	s := bl.BMTransLayer.HeadString()
+	s := bl.BMTransLayer.String()
 	s += fmt.Sprintf("BeginId %-10d", bl.BeginID)
 	s += fmt.Sprintf("ListCount: %-10d", bl.ListCount)
 	s += fmt.Sprintf("RealCount: %-10d\r\n", len(bl.Nodes))
@@ -279,7 +279,7 @@ func (bl *BPOPListResp) Pack() ([]byte, error) {
 
 	}
 
-	bl.BMTransLayer.SetData(r)
+	//bl.BMTransLayer.SetData(r)
 
 	return bl.BMTransLayer.Pack()
 
@@ -329,7 +329,7 @@ type BPOPRetr struct {
 }
 
 func NewBPOPRetr() *BPOPRetr {
-	bmtl := translayer.NewBMTL(translayer.RETR, nil)
+	bmtl := translayer.NewBMTL(translayer.RETR)
 
 	br := &BPOPRetr{}
 
@@ -339,7 +339,7 @@ func NewBPOPRetr() *BPOPRetr {
 }
 
 func (br *BPOPRetr) String() string {
-	s := br.BMTransLayer.HeadString()
+	s := br.BMTransLayer.String()
 	s += fmt.Sprintf("BeginId: %-10d", br.BeginID)
 	s += fmt.Sprintf("RetrCount: %-10d", br.RetrCount)
 
@@ -356,7 +356,7 @@ func (br *BPOPRetr) Pack() ([]byte, error) {
 	tmp = translayer.UInt32ToBuf(uint32(br.RetrCount))
 	r = append(r, tmp...)
 
-	br.BMTransLayer.SetData(r)
+	//br.BMTransLayer.SetData(r)
 
 	return br.BMTransLayer.Pack()
 }
@@ -390,7 +390,7 @@ type BPOPRetrResp struct {
 }
 
 func NewBPOPRetrResp() *BPOPRetrResp {
-	bmtl := translayer.NewBMTL(translayer.RETR_RESP, nil)
+	bmtl := translayer.NewBMTL(translayer.RETR_RESP)
 	br := &BPOPRetrResp{}
 
 	br.BMTransLayer = *bmtl
@@ -399,7 +399,7 @@ func NewBPOPRetrResp() *BPOPRetrResp {
 }
 
 func (br *BPOPRetrResp) String() string {
-	s := br.BMTransLayer.HeadString()
+	s := br.BMTransLayer.String()
 	s += fmt.Sprintf("mails count:%-10d", len(br.Mails))
 	for i := 0; i < len(br.Mails); i++ {
 		ce := &br.Mails[i]
@@ -441,7 +441,7 @@ func (br *BPOPRetrResp) Pack() ([]byte, error) {
 	tmp = translayer.UInt32ToBuf(uint32(br.TotalCount))
 	r = append(r, tmp...)
 
-	br.BMTransLayer.SetData(r)
+	//br.BMTransLayer.SetData(r)
 
 	return br.BMTransLayer.Pack()
 
@@ -605,7 +605,7 @@ type BPOPDelete struct {
 func NewBPOPDelete() *BPOPDelete {
 	bd := &BPOPDelete{}
 
-	bmtl := translayer.NewBMTL(translayer.DELETE, nil)
+	bmtl := translayer.NewBMTL(translayer.DELETE)
 
 	bd.BMTransLayer = *bmtl
 
@@ -613,7 +613,7 @@ func NewBPOPDelete() *BPOPDelete {
 }
 
 func (bd *BPOPDelete) String() string {
-	s := bd.BMTransLayer.HeadString()
+	s := bd.BMTransLayer.String()
 	s += fmt.Sprintf("Section coubt: %-10d\r\n", len(bd.Section))
 	for i := 0; i < len(bd.Section); i++ {
 		s += bd.Section[i].String()
@@ -654,7 +654,7 @@ func (bd *BPOPDelete) Pack() ([]byte, error) {
 	}
 	r = append(r, tmp...)
 
-	bd.BMTransLayer.SetData(r)
+	//bd.BMTransLayer.SetData(r)
 
 	return bd.BMTransLayer.Pack()
 
@@ -702,14 +702,14 @@ type BPOPDeleteResp struct {
 }
 
 func NewBPOPDeleteResp() *BPOPDeleteResp {
-	bmtl := translayer.NewBMTL(translayer.DELETE_RESP, nil)
+	bmtl := translayer.NewBMTL(translayer.DELETE_RESP)
 	br := &BPOPDeleteResp{}
 	br.BMTransLayer = *bmtl
 	return br
 }
 
 func (br *BPOPDeleteResp) String() string {
-	s := br.BMTransLayer.HeadString()
+	s := br.BMTransLayer.String()
 	s += fmt.Sprintf("result count: %-10d\r\n", len(br.Result))
 	for i := 0; i < len(br.Result); i++ {
 		r := &br.Result[i]
@@ -743,7 +743,7 @@ func (bd *BPOPDeleteResp) Pack() ([]byte, error) {
 	}
 	r = append(r, tmp...)
 
-	bd.BMTransLayer.SetData(r)
+	//bd.BMTransLayer.SetData(r)
 
 	return bd.BMTransLayer.Pack()
 

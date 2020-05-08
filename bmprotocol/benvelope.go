@@ -349,7 +349,7 @@ func (ee *EnvelopeSig) UnPack(data []byte) (int, error) {
 
 	offset += of
 
-	ee.Sn, of, err = UnPackShortBytes(data[offset:])
+	ee.Sig, of, err = UnPackShortBytes(data[offset:])
 	if err != nil {
 		return 0, err
 	}
@@ -452,7 +452,7 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 
 	eh := &e.EnvelopeHead
 
-	of, err = eh.UnPack(data)
+	of, err = eh.UnPack(data[offset:])
 	if err != nil {
 		return 0, err
 	}

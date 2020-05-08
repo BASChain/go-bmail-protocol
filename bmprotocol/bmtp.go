@@ -209,7 +209,7 @@ func (rse *RespSendEnvelope) String() string {
 	return s
 }
 
-func NewRespCryptEnvelope() *RespSendEnvelope {
+func NewRespSendEnvelope() *RespSendEnvelope {
 	rse := &RespSendEnvelope{}
 
 	bmact := translayer.NewBMTL(translayer.RESP_ENVELOPE)

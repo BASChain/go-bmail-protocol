@@ -93,6 +93,7 @@ func (bmha *BMHelloACK) UnPack(data []byte) (int, error) {
 
 	bmha.sn,of,err = UnPackShortBytes(data)
 	if err !=nil{
+		//fmt.Println("error is",err)
 		return 0,err
 	}
 

@@ -24,7 +24,7 @@ func fillEH(eh *bmprotocol.EnvelopeHead) {
 	eh.LPubKey = pubkey
 }
 
-func fillET(et *bmprotocol.EnvelopeTail) {
+func fillET(et *bmprotocol.EnvelopeSig) {
 	iv := make([]byte, 16)
 
 	for {
@@ -45,41 +45,68 @@ func fillET(et *bmprotocol.EnvelopeTail) {
 		break
 	}
 
-	et.IV = iv
+	et.Sn = iv
 	et.Sig = sig
 }
 
-func Test_SendEnvelope(t *testing.T) {
-	se := bmprotocol.NewSendEnvelope()
+func fillEC(ec *bmprotocol.EnvelopeContent)  {
+	ec.To = []string{"toa@bas", "tob@bas", "toc@bas"}
+	ec.CC = []string{"cca@bas", "ccb@bas"}
+	ec.BC = []string{"bca@bas"}
 
-	eh := &se.EnvelopeHead
+	ec.Subject = "test a ec"
+	ec.Data = "test e content"
 
-	fillEH(eh)
-
-	et := &se.EnvelopeTail
-
-	fillET(et)
-
-	cipher := make([]byte, 32)
+	hash1 := make([]byte, 16)
 
 	for {
-		n, _ := rand.Read(cipher)
-		if n != len(cipher) {
+		n, _ := rand.Read(hash1)
+		if n != len(hash1) {
 			continue
 		}
 		break
 	}
 
-	se.CipherTxt = cipher
+	hash2 := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(hash2)
+		if n != len(hash2) {
+			continue
+		}
+		break
+	}
+
+	ec.Files = []bmprotocol.Attachment{{"", bmprotocol.FileProperty{hash1, "name.doc", 0, 10200}},
+		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, 20400}}}
+}
+
+
+func Test_SendEnvelope(t *testing.T) {
+	se := bmprotocol.NewSendEnvelope()
+
+	eh := &se.Envelope.EnvelopeHead
+
+	fillEH(eh)
+
+	et := &se.Envelope.EnvelopeSig
+
+	fillET(et)
+
+	ec := &se.Envelope.EnvelopeContent
+
+	fillEC(ec)
 
 	data, _ := se.Pack()
+
+	se.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
 
 	fmt.Println(se.String())
 
 	seUnpack := &bmprotocol.SendEnvelope{}
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPackHead(data)
+	n, _ := bmtl.UnPack(data)
 
 	seUnpack.BMTransLayer = *bmtl
 
@@ -97,29 +124,52 @@ func Test_SendEnvelope(t *testing.T) {
 
 func Test_RespSendEnvelope(t *testing.T) {
 	rse := bmprotocol.NewRespSendEnvelope()
-	eh := &rse.EnvelopeHead
-	fillEH(eh)
 
-	iv := make([]byte, 16)
+	sn := make([]byte, 16)
 
 	for {
-		n, _ := rand.Read(iv)
-		if n != len(iv) {
+		n, _ := rand.Read(sn)
+		if n != len(sn) {
 			continue
 		}
 		break
 	}
 
-	rse.IV = iv
+	newsn := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(newsn)
+		if n != len(newsn) {
+			continue
+		}
+		break
+	}
+
+	bid := make([]byte, 16)
+
+	for {
+		n, _ := rand.Read(bid)
+		if n != len(bid) {
+			continue
+		}
+		break
+	}
+
+
+	rse.Sn = sn
+	copy(rse.EId[:],bid)
+	rse.NewSn = newsn
+	rse.ErrId = 1
 
 	data, _ := rse.Pack()
+	rse.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
 
 	fmt.Println(rse.String())
 
 	rseUnpack := &bmprotocol.RespSendEnvelope{}
 
 	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPackHead(data)
+	n, _ := bmtl.UnPack(data)
 
 	rseUnpack.BMTransLayer = *bmtl
 
@@ -128,88 +178,6 @@ func Test_RespSendEnvelope(t *testing.T) {
 	fmt.Println(rseUnpack.String())
 
 	if rse.String() == rseUnpack.String() {
-		t.Log("pass")
-	} else {
-		t.Fatal("failed")
-	}
-
-}
-
-func Test_SendEnvelopeFail(t *testing.T) {
-	sef := bmprotocol.NewSendEnvelopeFail()
-
-	eh := &sef.EnvelopeHead
-
-	fillEH(eh)
-
-	et := &sef.EnvelopeTail
-
-	fillET(et)
-
-	cipher := make([]byte, 32)
-
-	for {
-		n, _ := rand.Read(cipher)
-		if n != len(cipher) {
-			continue
-		}
-		break
-	}
-
-	sef.CipherTxt = cipher
-
-	sef.ErrorCode = 1
-
-	data, _ := sef.Pack()
-
-	fmt.Println(sef.String())
-
-	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPackHead(data)
-
-	sefUnpack := &bmprotocol.SendEnvelopeFail{}
-	sefUnpack.BMTransLayer = *bmtl
-	sefUnpack.UnPack(data[n:])
-
-	fmt.Println(sefUnpack.String())
-
-	if sef.String() == sefUnpack.String() {
-		t.Log("pass")
-	} else {
-		t.Fatal("failed")
-	}
-}
-
-func Test_RespSendEnvelopeFail(t *testing.T) {
-	rsef := bmprotocol.NewRespSendEnvelopeFail()
-	eh := &rsef.EnvelopeHead
-
-	fillEH(eh)
-
-	iv := make([]byte, 16)
-
-	for {
-		n, _ := rand.Read(iv)
-		if n != len(iv) {
-			continue
-		}
-		break
-	}
-
-	rsef.IV = iv
-
-	data, _ := rsef.Pack()
-	fmt.Println(rsef.String())
-
-	bmtl := &translayer.BMTransLayer{}
-	n, _ := bmtl.UnPackHead(data)
-	rsefunPack := &bmprotocol.RespSendEnvelopeFail{}
-	rsefunPack.BMTransLayer = *bmtl
-	rsefunPack.UnPack(data[n:])
-
-	fmt.Println(rsefunPack.String())
-
-	if rsef.String() == rsefunPack.String() {
 		t.Log("pass")
 	} else {
 		t.Fatal("failed")

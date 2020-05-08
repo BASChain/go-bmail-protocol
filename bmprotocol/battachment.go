@@ -213,7 +213,8 @@ func (sa *SendAttachment) GetReader() (*SAReader, error) {
 		return nil, err
 	}
 
-	sa.BMTransLayer.SetData(tmp)
+	sa.BMTransLayer.SetDataLen(uint32(len(tmp)))
+
 
 	r, err = sa.BMTransLayer.Pack()
 

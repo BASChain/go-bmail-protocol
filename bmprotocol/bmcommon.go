@@ -41,7 +41,7 @@ func UnPackShortString(data []byte) (string, int, error) {
 
 func UnPackShortBytes(data []byte) ([]byte, int, error) {
 	if len(data) < translayer.Uint16Size {
-		return nil, 0, errors.New("Unpack Short String Failed")
+		return nil, 0, errors.New("Unpack Short bytes Failed")
 	}
 
 	offset := 0
@@ -50,7 +50,7 @@ func UnPackShortBytes(data []byte) ([]byte, int, error) {
 	offset += translayer.Uint16Size
 
 	if len(data) < offset+int(l) {
-		return nil, 0, errors.New("Unpack Short String Failed")
+		return nil, 0, errors.New("Unpack Short bytes Failed")
 	}
 
 	var s []byte
@@ -245,5 +245,5 @@ func AddPackHead(bmtl *translayer.BMTransLayer,appendData []byte) ([]byte,error)
 
 	copy(appendData[:translayer.BMHeadSize()],r)
 
-	return r,nil
+	return appendData,nil
 }
