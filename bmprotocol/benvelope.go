@@ -535,7 +535,7 @@ func (ce *CryptEnvelope) UnPack(data []byte) (int, error) {
 	offset += of
 
 	eh := &ce.EnvelopeHead
-	of, err = eh.UnPack(data)
+	of, err = eh.UnPack(data[offset:])
 	if err != nil {
 		return 0, err
 	}

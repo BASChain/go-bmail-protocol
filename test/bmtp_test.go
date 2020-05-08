@@ -184,3 +184,50 @@ func Test_RespSendEnvelope(t *testing.T) {
 	}
 
 }
+
+func Test_SendCryptEnvelope(t *testing.T)  {
+	sce:=bmprotocol.NewSendCryptEnvelope()
+
+	es:=&sce.CryptEnvelope.EnvelopeSig
+	fillET(es)
+	eh:=&sce.CryptEnvelope.EnvelopeHead
+	fillEH(eh)
+
+
+	newsn := make([]byte, 64)
+
+	for {
+		n, _ := rand.Read(newsn)
+		if n != len(newsn) {
+			continue
+		}
+		break
+	}
+
+	sce.CryptEnvelope.CipherTxt = newsn
+
+	data,_:=sce.Pack()
+
+	sce.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
+
+	fmt.Println(sce.String())
+
+	sceUnpack := &bmprotocol.SendCryptEnvelope{}
+	bmtl:=&translayer.BMTransLayer{}
+
+
+	offset,_:=bmtl.UnPack(data)
+
+	sceUnpack.BMTransLayer = *bmtl
+
+	sceUnpack.UnPack(data[offset:])
+
+	fmt.Println(sceUnpack.String())
+
+	if sce.String() == sceUnpack.String(){
+		t.Log("pass")
+	}else {
+		t.Fatal("error")
+	}
+
+}
