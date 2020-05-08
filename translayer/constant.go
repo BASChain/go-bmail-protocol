@@ -6,15 +6,13 @@ const (
 	HELLO
 	HELLO_ACK
 
-	SEND_SIGNATURE
-	VALIDATE_SIGNATURE
-
 	//bmtp
 	SEND_ENVELOPE
 	RESP_ENVELOPE
 
-	SEND_ENVELOPE_FAILED
-	RESP_SEND_ENVELOPE_FAILED
+	SEND_CRYPT_ENVELOPE
+	RESP_CRYPT_ENVELOPE
+
 
 	//bpop
 	STAT
@@ -41,3 +39,6 @@ const (
 	Uint32Size int = 4
 	Uint64Size int = 8
 )
+
+
+type EnveUniqID [16]byte

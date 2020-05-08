@@ -3,7 +3,6 @@ package translayer
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/btcsuite/btcutil/base58"
 	"github.com/pkg/errors"
 	"reflect"
 )
@@ -16,7 +15,6 @@ type BMTransLayer struct {
 	cryptType uint16
 	typ       uint16
 	dataLen   uint32
-	data      []byte
 }
 
 func BMHeadSize() int {
@@ -46,24 +44,7 @@ func BMHeadSize() int {
 }
 
 
-func (bmtl *BMTransLayer) GetData() []byte {
-	return bmtl.data
-}
-
-func (bmtl *BMTransLayer) SetData(data []byte) {
-	bmtl.dataLen = uint32(len(data))
-	bmtl.data = data
-}
-
 func (bmtl *BMTransLayer) String() string {
-	s := bmtl.HeadString()
-
-	s += fmt.Sprintf("%s", base58.Encode(bmtl.data))
-
-	return s
-}
-
-func (bmtl *BMTransLayer) HeadString() string {
 	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
 	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
 	s += fmt.Sprintf("MsgType: %-4d", bmtl.typ)
@@ -72,15 +53,22 @@ func (bmtl *BMTransLayer) HeadString() string {
 	return s
 }
 
-func NewBMTL(typ uint16, data []byte) *BMTransLayer {
+func (bmtl *BMTransLayer)SetDataLen(l uint32)  {
+	bmtl.dataLen = l
+}
+
+func (bmtl *BMTransLayer)getDataLen() uint32 {
+	return bmtl.dataLen
+}
+
+func NewBMTL(typ uint16) *BMTransLayer {
 	bmtl := &BMTransLayer{}
 
 	bmtl.ver = BMAILVER1
 	bmtl.cryptType = ED25519
 
 	bmtl.typ = typ
-	bmtl.dataLen = uint32(len(data))
-	bmtl.data = data
+
 
 	return bmtl
 }
@@ -114,9 +102,6 @@ func (bmtl *BMTransLayer) Pack() ([]byte, error) {
 	if bmtl.typ <= MIN_TYP || bmtl.typ > MAX_TYP {
 		return nil, errors.New("BMail Action Type Error")
 	}
-	if bmtl.dataLen != uint32(len(bmtl.data)) {
-		return nil, errors.New("BMail Action Data Error")
-	}
 
 	var r []byte
 
@@ -133,30 +118,11 @@ func (bmtl *BMTransLayer) Pack() ([]byte, error) {
 
 	r = append(r, bufl...)
 
-	if len(bmtl.data) > 0 {
-		r = append(r, bmtl.data...)
-	}
-
 	return r, nil
 }
 
+
 func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
-
-	offset, err := bmtl.UnPackHead(data)
-	if err != nil {
-		return 0, err
-	}
-
-	if len(data) != offset+int(bmtl.dataLen) {
-		return 0, errors.New("Data Length Error")
-	}
-
-	bmtl.data = data[offset:]
-
-	return offset, nil
-}
-
-func (bmtl *BMTransLayer) UnPackHead(data []byte) (int, error) {
 	if len(data) < BMHeadSize() {
 		return 0, errors.New("Not a BMail Action Data")
 	}
