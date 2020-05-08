@@ -38,5 +38,7 @@ const (
 	Uint32Size int = 4
 	Uint64Size int = 8
 )
+const BMTP_PORT = 1025
+const BPOP3 = 1110
 
 type EnveUniqID [16]byte
