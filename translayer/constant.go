@@ -13,7 +13,6 @@ const (
 	SEND_CRYPT_ENVELOPE
 	RESP_CRYPT_ENVELOPE
 
-
 	//bpop
 	STAT
 	STAT_RESP
@@ -39,6 +38,5 @@ const (
 	Uint32Size int = 4
 	Uint64Size int = 8
 )
-
 
 type EnveUniqID [16]byte

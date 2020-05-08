@@ -20,17 +20,30 @@ const (
 
 var (
 	aesEncrypt func(plainBytes, iv, key []byte) []byte
-	aesDecrypt func(cipherText, key []byte) (iv []byte,plainBytes []byte)
+	aesDecrypt func(cipherText, key []byte) (iv []byte, plainBytes []byte)
 )
-
-
 
 type EnvelopeHead struct {
 	From         string
-	RecpAddr     string //recipient
-	RecpAddrType int    //0 to,1 cc,2 bc
-	LPubKey      []byte //local public key
-	EId          translayer.EnveUniqID   //envelope unique id
+	RecpAddr     string                //recipient
+	RecpAddrType int                   //0 to,1 cc,2 bc
+	LPubKey      []byte                //local public key
+	EId          translayer.EnveUniqID //envelope unique id
+}
+
+func (eh *EnvelopeHead) CopyTo(to *EnvelopeHead) *EnvelopeHead {
+	if to == nil {
+		to = &EnvelopeHead{}
+	}
+
+	to.From = eh.From
+	to.RecpAddr = eh.RecpAddr
+	to.RecpAddrType = eh.RecpAddrType
+	to.LPubKey = append(to.LPubKey, eh.LPubKey...)
+	to.EId = eh.EId
+
+	return to
+
 }
 
 func (eh *EnvelopeHead) String() string {
@@ -38,7 +51,7 @@ func (eh *EnvelopeHead) String() string {
 	s += fmt.Sprintf("%-20s", eh.RecpAddr)
 	s += fmt.Sprintf("%-4d", eh.RecpAddrType)
 	s += fmt.Sprintf("%-50s", base58.Encode(eh.LPubKey))
-	s += fmt.Sprintf("%-30s",base58.Encode(eh.EId[:]))
+	s += fmt.Sprintf("%-30s", base58.Encode(eh.EId[:]))
 
 	return s
 }
@@ -114,13 +127,13 @@ func (eh *EnvelopeHead) UnPack(data []byte) (int, error) {
 	offset += of
 
 	var tmp []byte
-	tmp,of,err = UnPackShortBytes(data[offset:])
+	tmp, of, err = UnPackShortBytes(data[offset:])
 	if err != nil {
 		return 0, nil
 	}
 	offset += of
 
-	copy(eh.EId[:],tmp)
+	copy(eh.EId[:], tmp)
 
 	return offset, nil
 }
@@ -176,7 +189,6 @@ func (ec *EnvelopeContent) String() string {
 
 	return s
 }
-
 
 func (ec *EnvelopeContent) Pack() ([]byte, error) {
 
@@ -306,6 +318,17 @@ type EnvelopeSig struct {
 	Sig []byte //signature
 }
 
+func (es *EnvelopeSig) CopyTo(to *EnvelopeSig) *EnvelopeSig {
+	if to == nil {
+		to = &EnvelopeSig{}
+	}
+
+	to.Sn = append(to.Sn, es.Sn...)
+	to.Sig = append(to.Sig, es.Sig...)
+
+	return to
+}
+
 func (et *EnvelopeSig) String() string {
 	s := fmt.Sprintf("%-50s", base58.Encode(et.Sn))
 	s += fmt.Sprintf("%s", base58.Encode(et.Sig))
@@ -363,21 +386,18 @@ type Envelope struct {
 	EnvelopeSig
 	EnvelopeHead
 	EnvelopeContent
-
 }
 
-func (e *Envelope)String() string  {
-	s:=e.EnvelopeSig.String()
-	s+="\r\n"
-	s+=e.EnvelopeHead.String()
-	s+="\r\n"
+func (e *Envelope) String() string {
+	s := e.EnvelopeSig.String()
+	s += "\r\n"
+	s += e.EnvelopeHead.String()
+	s += "\r\n"
 
-	s+=e.EnvelopeContent.String()
-
+	s += e.EnvelopeContent.String()
 
 	return s
 }
-
 
 func (e *Envelope) ForCrypt() ([]byte, error) {
 	var (
@@ -411,8 +431,6 @@ func (e *Envelope) Pack() ([]byte, error) {
 
 	eh := &e.EnvelopeHead
 
-
-
 	b, err = eh.Pack()
 	if err != nil {
 		return nil, err
@@ -428,13 +446,10 @@ func (e *Envelope) Pack() ([]byte, error) {
 
 	r = append(r, b...)
 
-
-
 	return r, nil
 }
 
 func (e *Envelope) UnPack(data []byte) (int, error) {
-
 
 	var (
 		of, offset int
@@ -465,8 +480,6 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 	}
 	offset += of
 
-
-
 	return offset, nil
 
 }
@@ -475,7 +488,6 @@ type CryptEnvelope struct {
 	EnvelopeSig
 	EnvelopeHead
 	CipherTxt []byte
-
 }
 
 func (ce *CryptEnvelope) String() string {
@@ -485,7 +497,6 @@ func (ce *CryptEnvelope) String() string {
 	s += ce.EnvelopeHead.String()
 	s += "\r\n"
 	s += base58.Encode(ce.CipherTxt)
-
 
 	return s
 }
@@ -502,7 +513,6 @@ func (ce *CryptEnvelope) Pack() ([]byte, error) {
 
 	eh := &ce.EnvelopeHead
 
-
 	b, err = eh.Pack()
 	if err != nil {
 		return nil, err
@@ -514,8 +524,6 @@ func (ce *CryptEnvelope) Pack() ([]byte, error) {
 		return nil, err
 	}
 	r = append(r, b...)
-
-
 
 	return r, nil
 }
@@ -547,7 +555,61 @@ func (ce *CryptEnvelope) UnPack(data []byte) (int, error) {
 	}
 	offset += of
 
-
-
 	return offset, nil
+}
+
+func EncodeEnvelope(e *Envelope, key []byte) *CryptEnvelope {
+
+	if e == nil {
+		return nil
+	}
+
+	ce := &CryptEnvelope{}
+	ceh := &ce.EnvelopeHead
+	(&e.EnvelopeHead).CopyTo(ceh)
+
+	csig := &ce.EnvelopeSig
+	(&e.EnvelopeSig).CopyTo(csig)
+
+	data, err := e.ForCrypt()
+	if err != nil {
+		return nil
+	}
+
+	ce.CipherTxt = aesEncrypt(data, e.EnvelopeSig.Sn, key)
+
+	if ce.CipherTxt == nil {
+		return nil
+	}
+
+	return ce
+
+}
+
+func DeCodeEnvelope(ce *CryptEnvelope, key []byte) *Envelope {
+	if ce == nil || len(ce.CipherTxt) == 0 {
+		return nil
+	}
+
+	e := &Envelope{}
+
+	eh := &e.EnvelopeHead
+	(&ce.EnvelopeHead).CopyTo(eh)
+	es := &e.EnvelopeSig
+	(&ce.EnvelopeSig).CopyTo(es)
+
+	_, plaintxt := aesDecrypt(ce.CipherTxt, key)
+	if len(plaintxt) == 0 {
+		return nil
+	}
+
+	ec := &e.EnvelopeContent
+
+	_, err := ec.UnPack(plaintxt)
+	if err != nil {
+		return nil
+	}
+
+	return e
+
 }

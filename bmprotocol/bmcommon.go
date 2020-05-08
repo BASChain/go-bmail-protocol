@@ -1,10 +1,10 @@
 package bmprotocol
 
 import (
-	"github.com/BASChain/go-bmail-protocol/translayer"
 	"encoding/binary"
-	"strconv"
 	"errors"
+	"github.com/BASChain/go-bmail-protocol/translayer"
+	"strconv"
 )
 
 func PackShortString(s string) ([]byte, error) {
@@ -226,24 +226,24 @@ func UnPackLongStringArray(data []byte) ([]string, int, error) {
 }
 
 func NewHeadBuf() []byte {
-	return make([]byte,translayer.BMHeadSize())
+	return make([]byte, translayer.BMHeadSize())
 }
 
-func AddPackHead(bmtl *translayer.BMTransLayer,appendData []byte) ([]byte,error)  {
+func AddPackHead(bmtl *translayer.BMTransLayer, appendData []byte) ([]byte, error) {
 
 	datalen := len(appendData) - translayer.BMHeadSize()
-	if bmtl == nil || datalen < 0{
-		return nil,errors.New("head is nil")
+	if bmtl == nil || datalen < 0 {
+		return nil, errors.New("head is nil")
 	}
 
 	bmtl.SetDataLen(uint32(datalen))
 
-	r,err:=bmtl.Pack()
-	if err!=nil{
-		return nil,err
+	r, err := bmtl.Pack()
+	if err != nil {
+		return nil, err
 	}
 
-	copy(appendData[:translayer.BMHeadSize()],r)
+	copy(appendData[:translayer.BMHeadSize()], r)
 
-	return appendData,nil
+	return appendData, nil
 }

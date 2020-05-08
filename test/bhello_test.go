@@ -59,8 +59,6 @@ func Test_BMHelloACK(t *testing.T) {
 	bmhaUnPack := &bmprotocol.BMHelloACK{}
 	bmhaUnPack.BMTransLayer = *bmtl
 
-	//fmt.Println(offset)
-
 	bmhaUnPack.UnPack(data[offset:])
 
 	fmt.Println(bmhaUnPack.String())
@@ -72,4 +70,3 @@ func Test_BMHelloACK(t *testing.T) {
 	}
 
 }
-

@@ -31,19 +31,19 @@ func (se *SendCryptEnvelope) Pack() ([]byte, error) {
 
 	r := NewHeadBuf()
 
-	tmp,err:=se.CryptEnvelope.Pack()
-	if err!=nil{
-		return nil,err
+	tmp, err := se.CryptEnvelope.Pack()
+	if err != nil {
+		return nil, err
 	}
 
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	return AddPackHead(&(se.BMTransLayer),r)
+	return AddPackHead(&(se.BMTransLayer), r)
 }
 
 func (se *SendCryptEnvelope) UnPack(data []byte) (int, error) {
 
-	ce:=&se.CryptEnvelope
+	ce := &se.CryptEnvelope
 
 	return ce.UnPack(data)
 }
@@ -63,17 +63,17 @@ ErrId:
 //server -> client
 type RespSendCryptEnvelope struct {
 	translayer.BMTransLayer
-	Sn []byte
+	Sn    []byte
 	NewSn []byte
-	EId translayer.EnveUniqID
+	EId   translayer.EnveUniqID
 	ErrId int
 }
 
 func (rse *RespSendCryptEnvelope) String() string {
 	s := rse.BMTransLayer.String()
-	s += "sn:"+base58.Encode(rse.Sn)
+	s += "sn:" + base58.Encode(rse.Sn)
 	s += "\r\n"
-	s += "NewSn:"+base58.Encode(rse.NewSn)
+	s += "NewSn:" + base58.Encode(rse.NewSn)
 	s += "\r\n"
 	s += base58.Encode(rse.EId[:])
 	return s
@@ -91,60 +91,59 @@ func NewRespSendCryptEnvelope() *RespSendCryptEnvelope {
 
 func (rse *RespSendCryptEnvelope) Pack() ([]byte, error) {
 
-	r:=NewHeadBuf()
+	r := NewHeadBuf()
 
-	tmp,err:=PackShortBytes(rse.Sn)
-	if err!=nil{
-		return nil,err
+	tmp, err := PackShortBytes(rse.Sn)
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	tmp,err = PackShortBytes(rse.NewSn)
-	if err!=nil{
-		return nil,err
+	tmp, err = PackShortBytes(rse.NewSn)
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	tmp,err = PackShortBytes(rse.EId[:])
-	if err!=nil{
-		return nil,err
+	tmp, err = PackShortBytes(rse.EId[:])
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	return AddPackHead(&(rse.BMTransLayer),r)
+	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
 func (rse *RespSendCryptEnvelope) UnPack(data []byte) (int, error) {
 	var (
-		offset,of int
-		err error
-		tmp []byte
+		offset, of int
+		err        error
+		tmp        []byte
 	)
 
-	rse.Sn,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	rse.Sn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	rse.NewSn,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	rse.NewSn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	tmp,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	tmp, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	copy(rse.EId[:],tmp)
+	copy(rse.EId[:], tmp)
 
 	return offset, nil
 
 }
-
 
 type SendEnvelope struct {
 	translayer.BMTransLayer
@@ -171,39 +170,37 @@ func (se *SendEnvelope) Pack() ([]byte, error) {
 
 	r := NewHeadBuf()
 
-	tmp,err:=se.Envelope.Pack()
-	if err!=nil{
-		return nil,err
+	tmp, err := se.Envelope.Pack()
+	if err != nil {
+		return nil, err
 	}
 
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	return AddPackHead(&(se.BMTransLayer),r)
+	return AddPackHead(&(se.BMTransLayer), r)
 }
 
 func (se *SendEnvelope) UnPack(data []byte) (int, error) {
 
-	ce:=&se.Envelope
+	ce := &se.Envelope
 
 	return ce.UnPack(data)
 }
 
-
-
 //server -> client
 type RespSendEnvelope struct {
 	translayer.BMTransLayer
-	Sn []byte
+	Sn    []byte
 	NewSn []byte
-	EId translayer.EnveUniqID
+	EId   translayer.EnveUniqID
 	ErrId int
 }
 
 func (rse *RespSendEnvelope) String() string {
 	s := rse.BMTransLayer.String()
-	s += "sn:"+base58.Encode(rse.Sn)
+	s += "sn:" + base58.Encode(rse.Sn)
 	s += "\r\n"
-	s += "NewSn:"+base58.Encode(rse.NewSn)
+	s += "NewSn:" + base58.Encode(rse.NewSn)
 	s += "\r\n"
 	s += base58.Encode(rse.EId[:])
 	return s
@@ -221,60 +218,59 @@ func NewRespSendEnvelope() *RespSendEnvelope {
 
 func (rse *RespSendEnvelope) Pack() ([]byte, error) {
 
-	r:=NewHeadBuf()
+	r := NewHeadBuf()
 
-	tmp,err:=PackShortBytes(rse.Sn)
-	if err!=nil{
-		return nil,err
+	tmp, err := PackShortBytes(rse.Sn)
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	tmp,err = PackShortBytes(rse.NewSn)
-	if err!=nil{
-		return nil,err
+	tmp, err = PackShortBytes(rse.NewSn)
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	tmp,err = PackShortBytes(rse.EId[:])
-	if err!=nil{
-		return nil,err
+	tmp, err = PackShortBytes(rse.EId[:])
+	if err != nil {
+		return nil, err
 	}
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	return AddPackHead(&(rse.BMTransLayer),r)
+	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
 func (rse *RespSendEnvelope) UnPack(data []byte) (int, error) {
 	var (
-		offset,of int
-		err error
-		tmp []byte
+		offset, of int
+		err        error
+		tmp        []byte
 	)
 
-	rse.Sn,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	rse.Sn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	rse.NewSn,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	rse.NewSn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	tmp,of,err = UnPackShortBytes(data[offset:])
-	if err!=nil{
-		return 0,err
+	tmp, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
 	}
 	offset += of
 
-	copy(rse.EId[:],tmp)
+	copy(rse.EId[:], tmp)
 
 	return offset, nil
 
 }
-
 
 //
 ////server -> client

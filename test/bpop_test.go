@@ -46,7 +46,7 @@ func Test_BPOPStatResp(t *testing.T) {
 	bsUnPck := &bmprotocol.BPOPStatResp{}
 	bmtl := &translayer.BMTransLayer{}
 
-	offset, _ := bmtl.UnPackHead(data)
+	offset, _ := bmtl.UnPack(data)
 
 	bsUnPck.BMTransLayer = *bmtl
 
@@ -129,7 +129,7 @@ func Test_BPOPListResp(t *testing.T) {
 
 	blunpack := &bmprotocol.BPOPListResp{}
 	bmtl := &translayer.BMTransLayer{}
-	offset, _ := bmtl.UnPackHead(data)
+	offset, _ := bmtl.UnPack(data)
 
 	blunpack.BMTransLayer = *bmtl
 
@@ -293,7 +293,7 @@ func Test_BPOPDelete(t *testing.T) {
 	fmt.Println(bd.String())
 	bdunpack := &bmprotocol.BPOPDelete{}
 	bmtl := &translayer.BMTransLayer{}
-	offset, _ := bmtl.UnPackHead(data)
+	offset, _ := bmtl.UnPack(data)
 
 	bdunpack.BMTransLayer = *bmtl
 	bdunpack.UnPack(data[offset:])
@@ -332,7 +332,7 @@ func Test_BPOPDeleteResp(t *testing.T) {
 	fmt.Println(bd.String())
 	bdunpack := &bmprotocol.BPOPDeleteResp{}
 	bmtl := &translayer.BMTransLayer{}
-	offset, _ := bmtl.UnPackHead(data)
+	offset, _ := bmtl.UnPack(data)
 
 	bdunpack.BMTransLayer = *bmtl
 	bdunpack.UnPack(data[offset:])

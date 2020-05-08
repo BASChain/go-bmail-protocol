@@ -49,7 +49,7 @@ func fillET(et *bmprotocol.EnvelopeSig) {
 	et.Sig = sig
 }
 
-func fillEC(ec *bmprotocol.EnvelopeContent)  {
+func fillEC(ec *bmprotocol.EnvelopeContent) {
 	ec.To = []string{"toa@bas", "tob@bas", "toc@bas"}
 	ec.CC = []string{"cca@bas", "ccb@bas"}
 	ec.BC = []string{"bca@bas"}
@@ -81,7 +81,6 @@ func fillEC(ec *bmprotocol.EnvelopeContent)  {
 		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, 20400}}}
 }
 
-
 func Test_SendEnvelope(t *testing.T) {
 	se := bmprotocol.NewSendEnvelope()
 
@@ -99,7 +98,7 @@ func Test_SendEnvelope(t *testing.T) {
 
 	data, _ := se.Pack()
 
-	se.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
+	se.BMTransLayer.SetDataLen(uint32(len(data) - translayer.BMHeadSize()))
 
 	fmt.Println(se.String())
 
@@ -155,14 +154,13 @@ func Test_RespSendEnvelope(t *testing.T) {
 		break
 	}
 
-
 	rse.Sn = sn
-	copy(rse.EId[:],bid)
+	copy(rse.EId[:], bid)
 	rse.NewSn = newsn
 	rse.ErrId = 1
 
 	data, _ := rse.Pack()
-	rse.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
+	rse.BMTransLayer.SetDataLen(uint32(len(data) - translayer.BMHeadSize()))
 
 	fmt.Println(rse.String())
 
@@ -185,14 +183,13 @@ func Test_RespSendEnvelope(t *testing.T) {
 
 }
 
-func Test_SendCryptEnvelope(t *testing.T)  {
-	sce:=bmprotocol.NewSendCryptEnvelope()
+func Test_SendCryptEnvelope(t *testing.T) {
+	sce := bmprotocol.NewSendCryptEnvelope()
 
-	es:=&sce.CryptEnvelope.EnvelopeSig
+	es := &sce.CryptEnvelope.EnvelopeSig
 	fillET(es)
-	eh:=&sce.CryptEnvelope.EnvelopeHead
+	eh := &sce.CryptEnvelope.EnvelopeHead
 	fillEH(eh)
-
 
 	newsn := make([]byte, 64)
 
@@ -206,17 +203,16 @@ func Test_SendCryptEnvelope(t *testing.T)  {
 
 	sce.CryptEnvelope.CipherTxt = newsn
 
-	data,_:=sce.Pack()
+	data, _ := sce.Pack()
 
-	sce.BMTransLayer.SetDataLen(uint32(len(data)-translayer.BMHeadSize()))
+	sce.BMTransLayer.SetDataLen(uint32(len(data) - translayer.BMHeadSize()))
 
 	fmt.Println(sce.String())
 
 	sceUnpack := &bmprotocol.SendCryptEnvelope{}
-	bmtl:=&translayer.BMTransLayer{}
+	bmtl := &translayer.BMTransLayer{}
 
-
-	offset,_:=bmtl.UnPack(data)
+	offset, _ := bmtl.UnPack(data)
 
 	sceUnpack.BMTransLayer = *bmtl
 
@@ -224,9 +220,9 @@ func Test_SendCryptEnvelope(t *testing.T)  {
 
 	fmt.Println(sceUnpack.String())
 
-	if sce.String() == sceUnpack.String(){
+	if sce.String() == sceUnpack.String() {
 		t.Log("pass")
-	}else {
+	} else {
 		t.Fatal("error")
 	}
 

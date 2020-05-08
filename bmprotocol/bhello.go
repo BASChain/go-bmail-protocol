@@ -7,7 +7,6 @@ import (
 	"time"
 )
 
-
 //client --helo--> server
 //server -->helo_resp{sn}-->client
 
@@ -64,16 +63,16 @@ func (bmha *BMHelloACK) Pack() ([]byte, error) {
 		err error
 	)
 
-	r:=NewHeadBuf()
+	r := NewHeadBuf()
 
-	tmp,err = PackShortBytes(bmha.sn)
-	if err!=nil{
-		return nil,err
+	tmp, err = PackShortBytes(bmha.sn)
+	if err != nil {
+		return nil, err
 	}
 
-	r = append(r,tmp...)
+	r = append(r, tmp...)
 
-	return AddPackHead(&(bmha.BMTransLayer),r)
+	return AddPackHead(&(bmha.BMTransLayer), r)
 }
 
 func (bmha *BMHelloACK) String() string {
@@ -87,14 +86,14 @@ func (bmha *BMHelloACK) String() string {
 func (bmha *BMHelloACK) UnPack(data []byte) (int, error) {
 
 	var (
-		of int
+		of  int
 		err error
 	)
 
-	bmha.sn,of,err = UnPackShortBytes(data)
-	if err !=nil{
+	bmha.sn, of, err = UnPackShortBytes(data)
+	if err != nil {
 		//fmt.Println("error is",err)
-		return 0,err
+		return 0, err
 	}
 
 	return of, nil
