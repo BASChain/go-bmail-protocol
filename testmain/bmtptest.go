@@ -12,7 +12,6 @@ func main() {
 	c := bmclient.NewClient(net.ParseIP("39.99.198.143"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
-
 		return
 	}
 	defer c.Close()
@@ -141,5 +140,4 @@ func NewEnv() *bmprotocol.SendEnvelope {
 	fillEC(ec)
 
 	return se
-
 }

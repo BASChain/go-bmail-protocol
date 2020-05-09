@@ -3,6 +3,7 @@ package bmprotocol
 import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
+	"github.com/pkg/errors"
 	"strconv"
 )
 
@@ -64,10 +65,11 @@ ErrId:
 //server -> client
 type RespSendCryptEnvelope struct {
 	translayer.BMTransLayer
-	Sn    []byte
-	NewSn []byte
-	EId   translayer.EnveUniqID
-	ErrId int
+	Sn         []byte
+	NewSn      []byte
+	EId        translayer.EnveUniqID
+	CxtHashSig []byte
+	ErrId      int
 }
 
 func (rse *RespSendCryptEnvelope) String() string {
@@ -76,7 +78,9 @@ func (rse *RespSendCryptEnvelope) String() string {
 	s += "\r\n"
 	s += "NewSn:" + base58.Encode(rse.NewSn)
 	s += "\r\n"
-	s += base58.Encode(rse.EId[:])
+	s += "eid: " + base58.Encode(rse.EId[:]) + " ctxhashsig: " + base58.Encode(rse.CxtHashSig)
+	s += "errid: " + strconv.Itoa(rse.ErrId)
+
 	return s
 }
 
@@ -112,6 +116,15 @@ func (rse *RespSendCryptEnvelope) Pack() ([]byte, error) {
 	}
 	r = append(r, tmp...)
 
+	tmp, err = PackShortBytes(rse.CxtHashSig)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp = translayer.UInt32ToBuf(uint32(rse.ErrId))
+	r = append(r, tmp...)
+
 	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
@@ -141,6 +154,17 @@ func (rse *RespSendCryptEnvelope) UnPack(data []byte) (int, error) {
 	offset += of
 
 	copy(rse.EId[:], tmp)
+
+	tmp, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	if len(data) < offset+translayer.Uint32Size {
+		return 0, errors.New("unpack errid failed")
+	}
+	offset += translayer.Uint32Size
 
 	return offset, nil
 
@@ -191,10 +215,11 @@ func (se *SendEnvelope) UnPack(data []byte) (int, error) {
 //server -> client
 type RespSendEnvelope struct {
 	translayer.BMTransLayer
-	Sn    []byte
-	NewSn []byte
-	EId   translayer.EnveUniqID
-	ErrId int
+	Sn         []byte
+	NewSn      []byte
+	EId        translayer.EnveUniqID
+	CtxHashSig []byte
+	ErrId      int
 }
 
 func (rse *RespSendEnvelope) String() string {
@@ -205,7 +230,10 @@ func (rse *RespSendEnvelope) String() string {
 	s += "\r\n"
 	s += base58.Encode(rse.EId[:])
 	s += "\r\n"
-	s += strconv.Itoa(rse.ErrId)
+	s += base58.Encode(rse.CtxHashSig[:])
+
+	s += "errid" + strconv.Itoa(rse.ErrId)
+
 	return s
 }
 
@@ -241,6 +269,16 @@ func (rse *RespSendEnvelope) Pack() ([]byte, error) {
 	}
 	r = append(r, tmp...)
 
+	tmp, err = PackShortBytes(rse.CtxHashSig)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp = translayer.UInt32ToBuf(uint32(rse.ErrId))
+
+	r = append(r, tmp...)
+
 	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
@@ -270,6 +308,17 @@ func (rse *RespSendEnvelope) UnPack(data []byte) (int, error) {
 	offset += of
 
 	copy(rse.EId[:], tmp)
+
+	tmp, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	if len(data) < offset+translayer.Uint32Size {
+		return 0, errors.New("unpack errid failed")
+	}
+	offset += translayer.Uint32Size
 
 	return offset, nil
 
