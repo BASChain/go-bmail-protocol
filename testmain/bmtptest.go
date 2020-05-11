@@ -120,8 +120,8 @@ func fillEC(ec *bmprotocol.EnvelopeContent) {
 		break
 	}
 
-	ec.Files = []bmprotocol.Attachment{{"", bmprotocol.FileProperty{hash1, "name.doc", 0, 10200}},
-		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, 20400}}}
+	ec.Files = []bmprotocol.Attachment{{"", bmprotocol.FileProperty{hash1, "name.doc", 0, true, 10200}},
+		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, true, 20400}}}
 }
 
 func NewEnv() *bmprotocol.SendEnvelope {

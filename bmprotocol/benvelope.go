@@ -36,7 +36,6 @@ type EnvelopeHead struct {
 	From         string
 	RecpAddr     string                //recipient
 	RecpAddrType int                   //0 to,1 cc,2 bc
-	LPubKey      []byte                //local public key
 	EId          translayer.EnveUniqID //envelope unique id
 }
 
@@ -48,7 +47,6 @@ func (eh *EnvelopeHead) CopyTo(to *EnvelopeHead) *EnvelopeHead {
 	to.From = eh.From
 	to.RecpAddr = eh.RecpAddr
 	to.RecpAddrType = eh.RecpAddrType
-	to.LPubKey = append(to.LPubKey, eh.LPubKey...)
 	to.EId = eh.EId
 
 	return to
@@ -59,14 +57,14 @@ func (eh *EnvelopeHead) String() string {
 	s := fmt.Sprintf("%-20s", eh.From)
 	s += fmt.Sprintf("%-20s", eh.RecpAddr)
 	s += fmt.Sprintf("%-4d", eh.RecpAddrType)
-	s += fmt.Sprintf("%-50s", base58.Encode(eh.LPubKey))
+
 	s += fmt.Sprintf("%-30s", base58.Encode(eh.EId[:]))
 
 	return s
 }
 
 func (eh *EnvelopeHead) Pack() ([]byte, error) {
-	if eh.From == "" || eh.RecpAddr == "" || len(eh.LPubKey) == 0 {
+	if eh.From == "" || eh.RecpAddr == "" {
 		return nil, errors.New("")
 	}
 
@@ -90,11 +88,6 @@ func (eh *EnvelopeHead) Pack() ([]byte, error) {
 	tmp = translayer.UInt32ToBuf(uint32(eh.RecpAddrType))
 	r = append(r, tmp...)
 
-	tmp, err = PackShortBytes(eh.LPubKey)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
 	tmp, err = PackShortBytes(eh.EId[:])
 	if err != nil {
 		return nil, err
@@ -128,12 +121,6 @@ func (eh *EnvelopeHead) UnPack(data []byte) (int, error) {
 	}
 	eh.RecpAddrType = int(binary.BigEndian.Uint32(data[offset:]))
 	offset += translayer.Uint32Size
-
-	eh.LPubKey, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, nil
-	}
-	offset += of
 
 	var tmp []byte
 	tmp, of, err = UnPackShortBytes(data[offset:])
@@ -391,9 +378,92 @@ func (ee *EnvelopeSig) UnPack(data []byte) (int, error) {
 	return offset, nil
 }
 
+//mode:
+// CryptModePS uint16 = 3
+// CryptModePP uint16 = 9
+// CryptModePSP uint16 = 11
+// CryptModePSSP uint16 = 15
+
+type EnvelopeCryptDesc struct {
+	Mode    int //ps, pp, psp, pssp
+	Pubkeys [][]byte
+}
+
+func (ecd *EnvelopeCryptDesc) String() string {
+	s := fmt.Sprintf("mode: %d", ecd.Mode)
+	s += fmt.Sprintf("     pubkey count:%d\r\n", len(ecd.Pubkeys))
+
+	for i := 0; i < len(ecd.Pubkeys); i++ {
+		s += fmt.Sprintf("%s\r\n", base58.Encode(ecd.Pubkeys[i]))
+	}
+
+	return s
+
+}
+
+func (ecd *EnvelopeCryptDesc) CopyTo(ecd1 *EnvelopeCryptDesc) *EnvelopeCryptDesc {
+	if ecd1 == nil {
+		ecd1 = &EnvelopeCryptDesc{}
+	}
+
+	ecd1.Mode = ecd.Mode
+
+	for i := 0; i < len(ecd.Pubkeys); i++ {
+		buf := make([]byte, len(ecd.Pubkeys[i]))
+		copy(buf, ecd.Pubkeys[i])
+
+		ecd1.Pubkeys = append(ecd1.Pubkeys, buf)
+
+	}
+	return ecd1
+
+}
+
+func (ecd *EnvelopeCryptDesc) Pack() ([]byte, error) {
+	var (
+		tmp, r []byte
+		err    error
+	)
+	tmp = translayer.UInt32ToBuf(uint32(ecd.Mode))
+	r = append(r, tmp...)
+
+	tmp, err = PackShortBytesArray(ecd.Pubkeys)
+	if err != nil {
+		return nil, err
+	}
+
+	r = append(r, tmp...)
+
+	return r, nil
+}
+
+func (ecd *EnvelopeCryptDesc) UnPack(data []byte) (int, error) {
+	var (
+		offset, of int
+		err        error
+	)
+
+	if len(data) < translayer.Uint32Size {
+		return 0, errors.New("unpack mode error")
+	}
+	ecd.Mode = int(binary.BigEndian.Uint32(data[offset:]))
+	offset += translayer.Uint32Size
+
+	ecd.Pubkeys, of, err = UnPackShortBytesArray(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+
+	offset += of
+
+	return offset, nil
+
+}
+
 type Envelope struct {
 	EnvelopeSig
 	EnvelopeHead
+	EnvelopeCryptDesc
 	EnvelopeContent
 }
 
@@ -402,7 +472,8 @@ func (e *Envelope) String() string {
 	s += "\r\n"
 	s += e.EnvelopeHead.String()
 	s += "\r\n"
-
+	s += e.EnvelopeCryptDesc.String()
+	s += "\r\n"
 	s += e.EnvelopeContent.String()
 
 	return s
@@ -447,6 +518,14 @@ func (e *Envelope) Pack() ([]byte, error) {
 
 	r = append(r, b...)
 
+	ecd := &e.EnvelopeCryptDesc
+	b, err = ecd.Pack()
+	if err != nil {
+		return nil, err
+	}
+
+	r = append(r, b...)
+
 	ec := &e.EnvelopeContent
 	b, err = ec.Pack()
 	if err != nil {
@@ -482,6 +561,14 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 	}
 	offset += of
 
+	ecd := &e.EnvelopeCryptDesc
+
+	of, err = ecd.UnPack(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
 	ec := &e.EnvelopeContent
 	of, err = ec.UnPack(data[offset:])
 	if err != nil {
@@ -496,6 +583,7 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 type CryptEnvelope struct {
 	EnvelopeSig
 	EnvelopeHead
+	EnvelopeCryptDesc
 	CipherTxt []byte
 }
 
@@ -504,6 +592,8 @@ func (ce *CryptEnvelope) String() string {
 	s := ce.EnvelopeSig.String()
 	s += "\r\n"
 	s += ce.EnvelopeHead.String()
+	s += "\r\n"
+	s += ce.EnvelopeCryptDesc.String()
 	s += "\r\n"
 	s += base58.Encode(ce.CipherTxt)
 
@@ -523,6 +613,14 @@ func (ce *CryptEnvelope) Pack() ([]byte, error) {
 	eh := &ce.EnvelopeHead
 
 	b, err = eh.Pack()
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, b...)
+
+	ecd := &ce.EnvelopeCryptDesc
+
+	b, err = ecd.Pack()
 	if err != nil {
 		return nil, err
 	}
@@ -558,6 +656,13 @@ func (ce *CryptEnvelope) UnPack(data []byte) (int, error) {
 	}
 	offset += of
 
+	ecd := &ce.EnvelopeCryptDesc
+	of, err = ecd.UnPack(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
 	ce.CipherTxt, of, err = UnPackLongBytes(data[offset:])
 	if err != nil {
 		return 0, err
@@ -579,6 +684,10 @@ func EncodeEnvelope(e *Envelope, key []byte) *CryptEnvelope {
 
 	csig := &ce.EnvelopeSig
 	(&e.EnvelopeSig).CopyTo(csig)
+
+	ecd := &ce.EnvelopeCryptDesc
+
+	(&e.EnvelopeCryptDesc).CopyTo(ecd)
 
 	data, err := e.ForCrypt()
 	if err != nil {
@@ -607,6 +716,10 @@ func DeCodeEnvelope(ce *CryptEnvelope, key []byte) *Envelope {
 	es := &e.EnvelopeSig
 	(&ce.EnvelopeSig).CopyTo(es)
 
+	ecd := &e.EnvelopeCryptDesc
+
+	(&ce.EnvelopeCryptDesc).CopyTo(ecd)
+
 	iv, plaintxt := aesDecrypt(ce.CipherTxt, key)
 	if len(plaintxt) == 0 || bytes.Compare(iv, ce.EnvelopeSig.Sn) == 0 {
 		return nil
@@ -620,5 +733,103 @@ func DeCodeEnvelope(ce *CryptEnvelope, key []byte) *Envelope {
 	}
 
 	return e
+
+}
+
+type ConfirmEnvelope struct {
+	Sn         []byte
+	NewSn      []byte
+	EId        translayer.EnveUniqID
+	CxtHashSig []byte
+	ErrId      int
+}
+
+func (ce *ConfirmEnvelope) String() string {
+	s := fmt.Sprintf("sn:%-30s", base58.Encode(ce.Sn))
+	s += fmt.Sprintf("newsn:%-30s\r\n", base58.Encode(ce.NewSn))
+	s += fmt.Sprintf("eid:%-30s", base58.Encode(ce.EId[:]))
+	s += fmt.Sprintf("cxthashsig:%-30s", base58.Encode(ce.CxtHashSig))
+	s += fmt.Sprintf("errid %d", ce.ErrId)
+
+	return s
+}
+
+func (ce *ConfirmEnvelope) Pack() ([]byte, error) {
+	var (
+		r, tmp []byte
+		err    error
+	)
+
+	tmp, err = PackShortBytes(ce.Sn)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp, err = PackShortBytes(ce.NewSn)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp, err = PackShortBytes(ce.EId[:])
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp, err = PackShortBytes(ce.CxtHashSig)
+	if err != nil {
+		return nil, err
+	}
+	r = append(r, tmp...)
+
+	tmp = translayer.UInt32ToBuf(uint32(ce.ErrId))
+	r = append(r, tmp...)
+
+	return r, nil
+
+}
+
+func (ce *ConfirmEnvelope) UnPack(data []byte) (int, error) {
+	var (
+		offset, of int
+		err        error
+		tmp        []byte
+	)
+
+	ce.Sn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	ce.NewSn, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	tmp, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	copy(ce.EId[:], tmp)
+
+	ce.CxtHashSig, of, err = UnPackShortBytes(data[offset:])
+	if err != nil {
+		return 0, err
+	}
+	offset += of
+
+	if len(data) < offset+translayer.Uint32Size {
+		return 0, errors.New("unpack errid error")
+	}
+	ce.ErrId = int(binary.BigEndian.Uint32(data[offset:]))
+	offset += translayer.Uint32Size
+
+	return offset, nil
 
 }

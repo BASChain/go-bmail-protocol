@@ -7,12 +7,24 @@ import (
 	"reflect"
 )
 
-const BMAILVER1 uint16 = 1
-const ED25519 uint16 = 1
+const (
+	BMAILVER1 uint16 = 1
+	//ED25519 uint16 = 1
+
+
+	CryptModePP uint16 = 9
+	CryptModePSP uint16 = 11
+	CryptModePSSP uint16 = 15
+	CryptModePS uint16 = 3
+
+)
+
+
+
+//9: pp /11:psp /15: pssp/ 3: ps
 
 type BMTransLayer struct {
 	ver       uint16
-	cryptType uint16
 	typ       uint16
 	dataLen   uint32
 }
@@ -47,9 +59,6 @@ func (bmtl *BMTransLayer) GetVersion() uint16 {
 	return bmtl.ver
 }
 
-func (bmtl *BMTransLayer) GetCryptType() uint16 {
-	return bmtl.cryptType
-}
 
 func (bmtl *BMTransLayer) GetMsgType() uint16 {
 	return bmtl.typ
@@ -57,7 +66,7 @@ func (bmtl *BMTransLayer) GetMsgType() uint16 {
 
 func (bmtl *BMTransLayer) String() string {
 	s := fmt.Sprintf("Version: %-4d", bmtl.ver)
-	s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
+	//s += fmt.Sprintf("CryptType: %-4d", bmtl.cryptType)
 	s += fmt.Sprintf("MsgType: %-4d", bmtl.typ)
 	s += fmt.Sprintf("DataLength:%-8d\r\n", bmtl.dataLen)
 
@@ -76,7 +85,7 @@ func NewBMTL(typ uint16) *BMTransLayer {
 	bmtl := &BMTransLayer{}
 
 	bmtl.ver = BMAILVER1
-	bmtl.cryptType = ED25519
+	//bmtl.cryptType = cTyp
 
 	bmtl.typ = typ
 
@@ -117,9 +126,9 @@ func (bmtl *BMTransLayer) Pack() ([]byte, error) {
 
 	bufl := UInt16ToBuf(uint16(bmtl.ver))
 	r = append(r, bufl...)
-
-	bufl = UInt16ToBuf(uint16(bmtl.cryptType))
-	r = append(r, bufl...)
+	//
+	//bufl = UInt16ToBuf(uint16(bmtl.cryptType))
+	//r = append(r, bufl...)
 
 	bufl = UInt16ToBuf(uint16(bmtl.typ))
 	r = append(r, bufl...)
@@ -140,8 +149,8 @@ func (bmtl *BMTransLayer) UnPack(data []byte) (int, error) {
 	bmtl.ver = binary.BigEndian.Uint16(data[offset:])
 	offset += Uint16Size
 
-	bmtl.cryptType = binary.BigEndian.Uint16(data[offset:])
-	offset += Uint16Size
+	//bmtl.cryptType = binary.BigEndian.Uint16(data[offset:])
+	//offset += Uint16Size
 
 	bmtl.typ = binary.BigEndian.Uint16(data[offset:])
 	offset += Uint16Size

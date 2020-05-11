@@ -2,9 +2,6 @@ package bmprotocol
 
 import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
-	"github.com/btcsuite/btcutil/base58"
-	"github.com/pkg/errors"
-	"strconv"
 )
 
 //client -> server
@@ -65,21 +62,12 @@ ErrId:
 //server -> client
 type RespSendCryptEnvelope struct {
 	translayer.BMTransLayer
-	Sn         []byte
-	NewSn      []byte
-	EId        translayer.EnveUniqID
-	CxtHashSig []byte
-	ErrId      int
+	ConfirmEnvelope
 }
 
 func (rse *RespSendCryptEnvelope) String() string {
 	s := rse.BMTransLayer.String()
-	s += "sn:" + base58.Encode(rse.Sn)
-	s += "\r\n"
-	s += "NewSn:" + base58.Encode(rse.NewSn)
-	s += "\r\n"
-	s += "eid: " + base58.Encode(rse.EId[:]) + " ctxhashsig: " + base58.Encode(rse.CxtHashSig)
-	s += "errid: " + strconv.Itoa(rse.ErrId)
+	s += rse.ConfirmEnvelope.String()
 
 	return s
 }
@@ -98,76 +86,22 @@ func (rse *RespSendCryptEnvelope) Pack() ([]byte, error) {
 
 	r := NewHeadBuf()
 
-	tmp, err := PackShortBytes(rse.Sn)
+	ce := &rse.ConfirmEnvelope
+
+	tmp, err := ce.Pack()
 	if err != nil {
 		return nil, err
 	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.NewSn)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.EId[:])
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.CxtHashSig)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp = translayer.UInt32ToBuf(uint32(rse.ErrId))
 	r = append(r, tmp...)
 
 	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
 func (rse *RespSendCryptEnvelope) UnPack(data []byte) (int, error) {
-	var (
-		offset, of int
-		err        error
-		tmp        []byte
-	)
 
-	rse.Sn, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
+	ce := &rse.ConfirmEnvelope
 
-	rse.NewSn, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	tmp, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	copy(rse.EId[:], tmp)
-
-	tmp, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	if len(data) < offset+translayer.Uint32Size {
-		return 0, errors.New("unpack errid failed")
-	}
-	offset += translayer.Uint32Size
-
-	return offset, nil
-
+	return ce.UnPack(data)
 }
 
 type SendEnvelope struct {
@@ -215,24 +149,12 @@ func (se *SendEnvelope) UnPack(data []byte) (int, error) {
 //server -> client
 type RespSendEnvelope struct {
 	translayer.BMTransLayer
-	Sn         []byte
-	NewSn      []byte
-	EId        translayer.EnveUniqID
-	CtxHashSig []byte
-	ErrId      int
+	ConfirmEnvelope
 }
 
 func (rse *RespSendEnvelope) String() string {
 	s := rse.BMTransLayer.String()
-	s += "sn:" + base58.Encode(rse.Sn)
-	s += "\r\n"
-	s += "NewSn:" + base58.Encode(rse.NewSn)
-	s += "\r\n"
-	s += base58.Encode(rse.EId[:])
-	s += "\r\n"
-	s += base58.Encode(rse.CtxHashSig[:])
-
-	s += "errid" + strconv.Itoa(rse.ErrId)
+	s += rse.ConfirmEnvelope.String()
 
 	return s
 }
@@ -251,75 +173,20 @@ func (rse *RespSendEnvelope) Pack() ([]byte, error) {
 
 	r := NewHeadBuf()
 
-	tmp, err := PackShortBytes(rse.Sn)
+	ce := &rse.ConfirmEnvelope
+
+	tmp, err := ce.Pack()
 	if err != nil {
 		return nil, err
 	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.NewSn)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.EId[:])
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp, err = PackShortBytes(rse.CtxHashSig)
-	if err != nil {
-		return nil, err
-	}
-	r = append(r, tmp...)
-
-	tmp = translayer.UInt32ToBuf(uint32(rse.ErrId))
-
 	r = append(r, tmp...)
 
 	return AddPackHead(&(rse.BMTransLayer), r)
 }
 
 func (rse *RespSendEnvelope) UnPack(data []byte) (int, error) {
-	var (
-		offset, of int
-		err        error
-		tmp        []byte
-	)
+	ce := &rse.ConfirmEnvelope
 
-	rse.Sn, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	rse.NewSn, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	tmp, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	copy(rse.EId[:], tmp)
-
-	tmp, of, err = UnPackShortBytes(data[offset:])
-	if err != nil {
-		return 0, err
-	}
-	offset += of
-
-	if len(data) < offset+translayer.Uint32Size {
-		return 0, errors.New("unpack errid failed")
-	}
-	offset += translayer.Uint32Size
-
-	return offset, nil
+	return ce.UnPack(data)
 
 }

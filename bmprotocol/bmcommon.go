@@ -144,6 +144,29 @@ func PackShortStringArray(arrs []string) ([]byte, error) {
 	return r, nil
 }
 
+func PackShortBytesArray(arrs [][]byte) ([]byte, error) {
+	if len(arrs) == 0 {
+		return nil, errors.New("Pack string Array Failed")
+	}
+
+	var r []byte
+
+	bufl := translayer.UInt32ToBuf(uint32(len(arrs)))
+
+	r = append(r, bufl...)
+
+	for i := 0; i < len(arrs); i++ {
+		s := arrs[i]
+
+		rs, _ := PackShortBytes(s)
+		if rs != nil {
+			r = append(r, rs...)
+		}
+	}
+
+	return r, nil
+}
+
 func UnPackShortStringArray(data []byte) ([]string, int, error) {
 	if len(data) < translayer.Uint32Size {
 		return nil, 0, errors.New("Unpack Short String Array Failed")
@@ -161,6 +184,35 @@ func UnPackShortStringArray(data []byte) ([]string, int, error) {
 
 	for i := 0; i < int(cnt); i++ {
 		s, of1, e := UnPackShortString(data[offset:])
+		if e != nil {
+			return nil, 0, errors.New("Unpack short string array :" + strconv.Itoa(i) + " Failed")
+		}
+
+		offset += of1
+
+		rs = append(rs, s)
+	}
+
+	return rs, offset, nil
+}
+
+func UnPackShortBytesArray(data []byte) ([][]byte, int, error) {
+	if len(data) < translayer.Uint32Size {
+		return nil, 0, errors.New("Unpack Short String Array Failed")
+	}
+
+	var rs [][]byte
+
+	offset := 0
+
+	cnt := binary.BigEndian.Uint32(data[offset:])
+	offset += translayer.Uint32Size
+	if cnt == 0 {
+		return rs, offset, nil
+	}
+
+	for i := 0; i < int(cnt); i++ {
+		s, of1, e := UnPackShortBytes(data[offset:])
 		if e != nil {
 			return nil, 0, errors.New("Unpack short string array :" + strconv.Itoa(i) + " Failed")
 		}
