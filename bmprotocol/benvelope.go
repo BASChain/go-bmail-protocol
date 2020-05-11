@@ -310,8 +310,8 @@ func (ec *EnvelopeContent) UnPack(data []byte) (int, error) {
 }
 
 type EnvelopeSig struct {
-	Sn  []byte //sn from Bhello
-	Sig []byte //signature
+	Sn  []byte `json:"sn"`
+	Sig []byte `json:"sig"`
 }
 
 func (es *EnvelopeSig) CopyTo(to *EnvelopeSig) *EnvelopeSig {
