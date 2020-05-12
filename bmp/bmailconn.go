@@ -19,7 +19,7 @@ func NewBMConn(ip net.IP) *BMailConn {
 	return &BMailConn{conn}
 }
 
-func (bc *BMailConn) SendWithHeader(v Body) error {
+func (bc *BMailConn) SendWithHeader(v Envelope) error {
 	data, err := v.Pack()
 	if err != nil {
 		return err
@@ -46,7 +46,7 @@ func (bc *BMailConn) SendWithHeader(v Body) error {
 	return nil
 }
 
-func (bc *BMailConn) ReadWithHeader(v Body) error {
+func (bc *BMailConn) ReadWithHeader(v Envelope) error {
 	header := &Header{}
 	buf := make([]byte, header.GetLen())
 

@@ -59,13 +59,6 @@ func (h *Header) Unpack(data []byte) error {
 	return nil
 }
 
-type Body interface {
-	Pack() ([]byte, error)
-	MsgType() uint16
-	VerifyHeader(header *Header) bool
-	UnPack([]byte) error
-}
-
 type PlainHELO struct {
 	SrvAddr []bmail.Address
 }
