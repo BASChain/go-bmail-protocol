@@ -16,7 +16,7 @@ type ClientConf struct {
 type BMailClient struct {
 	Wallet   bmail.Wallet
 	SrvIP    net.IP
-	SrvBcas  []bmail.Address
+	SrvBcas  map[bmail.Address]bool
 	resolver resolver.NameResolver
 }
 
@@ -37,18 +37,34 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	}
 	srvIP := choseBestServer(ips)
 
-	return &BMailClient{
+	obj := &BMailClient{
 		Wallet:   cc.Wallet,
 		SrvIP:    srvIP,
-		SrvBcas:  bcas,
+		SrvBcas:  make(map[bmail.Address]bool),
 		resolver: r,
-	}, nil
+	}
+	for _, bca := range bcas {
+		obj.SrvBcas[bca] = true
+	}
+	return obj, nil
 }
 
 func choseBestServer(ips []net.IP) net.IP {
 	return ips[0]
 }
 
-func (bmc *BMailClient) SendMail(env *Envelope) error {
+func (bmc *BMailClient) SendMail(env Envelope) error {
+	conn, err := NewBMConn(bmc.SrvIP)
+	if err != nil {
+		return err
+	}
+	ack := &HELOACK{}
+	if err := conn.ReadWithHeader(ack); err != nil {
+		return err
+	}
+
+	if !bmc.SrvBcas[ack.SrvBca] {
+
+	}
 	return nil
 }

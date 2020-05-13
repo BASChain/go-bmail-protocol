@@ -1,64 +1,40 @@
 package bmp
 
 import (
-	"encoding/binary"
-	"fmt"
 	"github.com/BASChain/go-bmail-account"
 	"github.com/BASChain/go-bmail-protocol/translayer"
 )
 
+type EnvelopeMsg interface {
+	MsgType() uint16
+	VerifyHeader(header *Header) bool
+}
+
 type Header struct {
-	Ver     uint16
-	MsgTyp  uint16
-	DataLen uint32
+	Ver    uint16 `json:"ver"`
+	MsgTyp uint16 `json:"t"`
+	MsgLen int    `json:"l"`
 }
 
-func (h *Header) Pack() []byte {
-	var r []byte
-
-	bufl := translayer.UInt16ToBuf(uint16(h.Ver))
-	r = append(r, bufl...)
-
-	bufl = translayer.UInt16ToBuf(uint16(h.MsgTyp))
-	r = append(r, bufl...)
-
-	bufl = translayer.UInt32ToBuf(h.DataLen)
-
-	r = append(r, bufl...)
-
-	return r
-}
-
-func (h *Header) GetLen() int {
-	if translayer.BMAILVER1 == 1 {
+func (h *Header) GetLen() int8 {
+	if h.Ver == translayer.BMAILVER1 {
 		return 8
 	}
 	return -1
 }
 
-func (h *Header) Unpack(data []byte) error {
-	if len(data) < h.GetLen() {
-		return fmt.Errorf("not a BMail Action Data")
-	}
-
-	offset := 0
-	h.Ver = binary.BigEndian.Uint16(data[offset:])
-	offset += translayer.Uint16Size
-
-	h.MsgTyp = binary.BigEndian.Uint16(data[offset:])
-	offset += translayer.Uint16Size
-
-	if h.MsgTyp <= translayer.MIN_TYP || h.MsgTyp >= translayer.MAX_TYP {
-		return fmt.Errorf("BMail Action Type Error")
-	}
-
-	l := binary.BigEndian.Uint32(data[offset:])
-	offset += translayer.Uint32Size
-
-	h.DataLen = l
-	return nil
+type HELO struct {
 }
 
-type PlainHELO struct {
-	SrvAddr []bmail.Address
+type HELOACK struct {
+	SN     BMailSN       `json:"sn"`
+	SrvBca bmail.Address `json:"srv"`
+}
+
+func (ha *HELOACK) MsgType() uint16 {
+	return translayer.HELLO_ACK
+}
+
+func (ha *HELOACK) VerifyHeader(header *Header) bool {
+	return header.MsgLen != 0 && header.MsgTyp == translayer.HELLO_ACK
 }
