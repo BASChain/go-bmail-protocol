@@ -23,3 +23,7 @@ func (iv *BMailIV) Bytes() []byte {
 const BMailSNSize = 16
 
 type BMailSN [BMailSNSize]byte
+
+func (sn *BMailSN) Bytes() []byte {
+	return sn[:]
+}

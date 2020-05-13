@@ -53,18 +53,51 @@ func choseBestServer(ips []net.IP) net.IP {
 	return ips[0]
 }
 
-func (bmc *BMailClient) SendMail(env Envelope) error {
+func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
+
 	conn, err := NewBMConn(bmc.SrvIP)
+
 	if err != nil {
 		return err
 	}
+	defer conn.Close()
+
 	ack := &HELOACK{}
 	if err := conn.ReadWithHeader(ack); err != nil {
 		return err
 	}
 
 	if !bmc.SrvBcas[ack.SrvBca] {
+		return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
+	}
 
+	aesKey, err := bmc.Wallet.AeskeyOf(re.ToAddr.ToPubKey())
+	if err != nil {
+		return err
+	}
+	cryptEnv, err := re.Seal(aesKey)
+	if err != nil {
+		return err
+	}
+	synHash := cryptEnv.Hash()
+	msg := &EnvelopeSyn{
+		Mode: BMailModeP2P,
+		SN:   ack.SN,
+		Sig:  bmc.Wallet.Sign(ack.SN.Bytes()),
+		Hash: synHash,
+		Env:  cryptEnv,
+	}
+	if err := conn.SendWithHeader(msg); err != nil {
+		return err
+	}
+
+	msgAck := &EnvelopeAck{}
+	if err := conn.ReadWithHeader(msgAck); err != nil {
+		return err
+	}
+
+	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
+		return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
 	}
 	return nil
 }

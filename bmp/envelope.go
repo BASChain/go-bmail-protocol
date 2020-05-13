@@ -1,6 +1,7 @@
 package bmp
 
 import (
+	"crypto/sha256"
 	"encoding/json"
 	"github.com/BASChain/go-account"
 	"github.com/BASChain/go-bmail-account"
@@ -17,12 +18,7 @@ const (
 )
 
 type Envelope interface {
-	//From() string
-	//FromAddr() bmail.Address
-	//To() string
-	//ToAddr() bmail.Address
-	//Subject()string
-	//Msg() string
+	Hash() []byte
 }
 
 type EnvelopeHead struct {
@@ -30,6 +26,7 @@ type EnvelopeHead struct {
 	From     string        `json:"from"`
 	FromAddr bmail.Address `json:"fromAddr"`
 	To       string        `json:"to"`
+	ToAddr   bmail.Address `json:"toAddr"`
 	IV       BMailIV       `json:"iv"`
 }
 type EnvelopeBody struct {
@@ -70,4 +67,10 @@ func (re *RawEnvelope) Seal(key []byte) (Envelope, error) {
 	obj.IV = *iv
 
 	return obj, nil
+}
+
+func (re *RawEnvelope) Hash() []byte {
+	data, _ := json.Marshal(re)
+	hash := sha256.Sum256(data)
+	return hash[:]
 }

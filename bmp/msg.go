@@ -38,3 +38,33 @@ func (ha *HELOACK) MsgType() uint16 {
 func (ha *HELOACK) VerifyHeader(header *Header) bool {
 	return header.MsgLen != 0 && header.MsgTyp == translayer.HELLO_ACK
 }
+
+type EnvelopeSyn struct {
+	Mode uint16   `json:"mode"`
+	SN   BMailSN  `json:"sn"`
+	Sig  []byte   `json:"sig"`
+	Hash []byte   `json:"hash"`
+	Env  Envelope `json:"env"`
+}
+
+func (es *EnvelopeSyn) MsgType() uint16 {
+	return translayer.SEND_CRYPT_ENVELOPE
+}
+func (es *EnvelopeSyn) VerifyHeader(header *Header) bool {
+	return header.MsgTyp == translayer.SEND_CRYPT_ENVELOPE &&
+		header.MsgLen != 0
+}
+
+type EnvelopeAck struct {
+	NextSN BMailSN `json:"nextSN"`
+	Hash   []byte  `json:"hash"`
+	Sig    []byte  `json:"sig"`
+}
+
+func (ea *EnvelopeAck) MsgType() uint16 {
+	return translayer.RESP_CRYPT_ENVELOPE
+}
+func (ea *EnvelopeAck) VerifyHeader(header *Header) bool {
+	return header.MsgTyp == translayer.RESP_CRYPT_ENVELOPE &&
+		header.MsgLen != 0
+}
