@@ -79,6 +79,8 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 		return err
 	}
 
+
+
 	if err := json.Unmarshal(buf, v); err != nil {
 		return err
 	}

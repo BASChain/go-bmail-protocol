@@ -108,6 +108,7 @@ type EnvelopeAck struct {
 	NextSN BMailSN `json:"nextSN"`
 	Hash   []byte  `json:"hash"`
 	Sig    []byte  `json:"sig"`
+	ErrorCode int `json:"errorCode"`
 }
 
 func (ea *EnvelopeAck) MsgType() uint16 {
