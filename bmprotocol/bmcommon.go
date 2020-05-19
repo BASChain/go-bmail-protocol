@@ -98,7 +98,7 @@ func UnPackLongString(data []byte) (string, int, error) {
 
 func UnPackLongBytes(data []byte) ([]byte, int, error) {
 	if len(data) < translayer.Uint32Size {
-		return nil, 0, errors.New("Unpack Long String Failed")
+		return nil, 0, errors.New("Unpack Long bytes Failed")
 	}
 
 	offset := 0
@@ -107,7 +107,7 @@ func UnPackLongBytes(data []byte) ([]byte, int, error) {
 	offset += translayer.Uint32Size
 
 	if len(data) < offset+int(l) {
-		return nil, 0, errors.New("Unpack Long String Failed")
+		return nil, 0, errors.New("Unpack Long bytes Failed")
 	}
 
 	var s []byte
@@ -123,7 +123,7 @@ func UnPackLongBytes(data []byte) ([]byte, int, error) {
 
 func PackShortStringArray(arrs []string) ([]byte, error) {
 	if len(arrs) == 0 {
-		return nil, errors.New("Pack string Array Failed")
+		return nil, errors.New("Pack short string Array Failed")
 	}
 
 	var r []byte
@@ -146,7 +146,7 @@ func PackShortStringArray(arrs []string) ([]byte, error) {
 
 func PackShortBytesArray(arrs [][]byte) ([]byte, error) {
 	if len(arrs) == 0 {
-		return nil, errors.New("Pack string Array Failed")
+		return nil, errors.New("Pack short bytes Array Failed")
 	}
 
 	var r []byte
@@ -198,7 +198,7 @@ func UnPackShortStringArray(data []byte) ([]string, int, error) {
 
 func UnPackShortBytesArray(data []byte) ([][]byte, int, error) {
 	if len(data) < translayer.Uint32Size {
-		return nil, 0, errors.New("Unpack Short String Array Failed")
+		return nil, 0, errors.New("Unpack Short bytes Array Failed")
 	}
 
 	var rs [][]byte
@@ -227,7 +227,7 @@ func UnPackShortBytesArray(data []byte) ([][]byte, int, error) {
 
 func PackLongStringArray(arrs []string) ([]byte, error) {
 	if len(arrs) == 0 {
-		return nil, errors.New("Pack string Array Failed")
+		return nil, errors.New("Pack long string Array Failed")
 	}
 
 	var r []byte

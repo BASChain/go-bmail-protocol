@@ -29,7 +29,18 @@ type BMTransLayer struct {
 	dataLen   uint32
 }
 
+var (
+	bmHeaderLen int
+)
+
+
+
 func BMHeadSize() int {
+
+	if bmHeaderLen > 0{
+		return bmHeaderLen
+	}
+
 	rv := reflect.ValueOf(BMTransLayer{})
 
 	cnt := rv.NumField()
@@ -51,6 +62,8 @@ func BMHeadSize() int {
 			size += 0
 		}
 	}
+
+	bmHeaderLen = size
 
 	return size
 }
@@ -76,6 +89,7 @@ func (bmtl *BMTransLayer) String() string {
 func (bmtl *BMTransLayer) SetDataLen(l uint32) {
 	bmtl.dataLen = l
 }
+
 
 func (bmtl *BMTransLayer) GetDataLen() uint32 {
 	return bmtl.dataLen

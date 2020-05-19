@@ -32,16 +32,16 @@ func RegAesDecrypt(dec func(cipherText, key []byte) (iv []byte, plainBytes []byt
 	aesDecrypt = dec
 }
 
-type EnvelopeHead struct {
+type EnvelopeRoute struct {
 	From         string
 	RecpAddr     string                //recipient
 	RecpAddrType int                   //0 to,1 cc,2 bc
 	EId          translayer.EnveUniqID //envelope unique id
 }
 
-func (eh *EnvelopeHead) CopyTo(to *EnvelopeHead) *EnvelopeHead {
+func (eh *EnvelopeRoute) CopyTo(to *EnvelopeRoute) *EnvelopeRoute {
 	if to == nil {
-		to = &EnvelopeHead{}
+		to = &EnvelopeRoute{}
 	}
 
 	to.From = eh.From
@@ -53,7 +53,7 @@ func (eh *EnvelopeHead) CopyTo(to *EnvelopeHead) *EnvelopeHead {
 
 }
 
-func (eh *EnvelopeHead) String() string {
+func (eh *EnvelopeRoute) String() string {
 	s := fmt.Sprintf("%-20s", eh.From)
 	s += fmt.Sprintf("%-20s", eh.RecpAddr)
 	s += fmt.Sprintf("%-4d", eh.RecpAddrType)
@@ -63,7 +63,7 @@ func (eh *EnvelopeHead) String() string {
 	return s
 }
 
-func (eh *EnvelopeHead) Pack() ([]byte, error) {
+func (eh *EnvelopeRoute) Pack() ([]byte, error) {
 	if eh.From == "" || eh.RecpAddr == "" {
 		return nil, errors.New("")
 	}
@@ -98,7 +98,7 @@ func (eh *EnvelopeHead) Pack() ([]byte, error) {
 	return r, nil
 }
 
-func (eh *EnvelopeHead) UnPack(data []byte) (int, error) {
+func (eh *EnvelopeRoute) UnPack(data []byte) (int, error) {
 	var (
 		offset, of int
 		err        error
@@ -462,7 +462,7 @@ func (ecd *EnvelopeCryptDesc) UnPack(data []byte) (int, error) {
 
 type Envelope struct {
 	EnvelopeSig
-	EnvelopeHead
+	EnvelopeRoute
 	EnvelopeCryptDesc
 	EnvelopeContent
 }
@@ -470,7 +470,7 @@ type Envelope struct {
 func (e *Envelope) String() string {
 	s := e.EnvelopeSig.String()
 	s += "\r\n"
-	s += e.EnvelopeHead.String()
+	s += e.EnvelopeRoute.String()
 	s += "\r\n"
 	s += e.EnvelopeCryptDesc.String()
 	s += "\r\n"
@@ -509,7 +509,7 @@ func (e *Envelope) Pack() ([]byte, error) {
 
 	r = append(r, b...)
 
-	eh := &e.EnvelopeHead
+	eh := &e.EnvelopeRoute
 
 	b, err = eh.Pack()
 	if err != nil {
@@ -553,7 +553,7 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 
 	offset += of
 
-	eh := &e.EnvelopeHead
+	eh := &e.EnvelopeRoute
 
 	of, err = eh.UnPack(data[offset:])
 	if err != nil {
@@ -582,7 +582,7 @@ func (e *Envelope) UnPack(data []byte) (int, error) {
 
 type CryptEnvelope struct {
 	EnvelopeSig
-	EnvelopeHead
+	EnvelopeRoute
 	EnvelopeCryptDesc
 	CipherTxt []byte
 }
@@ -591,7 +591,7 @@ func (ce *CryptEnvelope) String() string {
 
 	s := ce.EnvelopeSig.String()
 	s += "\r\n"
-	s += ce.EnvelopeHead.String()
+	s += ce.EnvelopeRoute.String()
 	s += "\r\n"
 	s += ce.EnvelopeCryptDesc.String()
 	s += "\r\n"
@@ -610,7 +610,7 @@ func (ce *CryptEnvelope) Pack() ([]byte, error) {
 	}
 	r = append(r, b...)
 
-	eh := &ce.EnvelopeHead
+	eh := &ce.EnvelopeRoute
 
 	b, err = eh.Pack()
 	if err != nil {
@@ -649,7 +649,7 @@ func (ce *CryptEnvelope) UnPack(data []byte) (int, error) {
 	}
 	offset += of
 
-	eh := &ce.EnvelopeHead
+	eh := &ce.EnvelopeRoute
 	of, err = eh.UnPack(data[offset:])
 	if err != nil {
 		return 0, err
@@ -679,8 +679,8 @@ func EncodeEnvelope(e *Envelope, key []byte) *CryptEnvelope {
 	}
 
 	ce := &CryptEnvelope{}
-	ceh := &ce.EnvelopeHead
-	(&e.EnvelopeHead).CopyTo(ceh)
+	ceh := &ce.EnvelopeRoute
+	(&e.EnvelopeRoute).CopyTo(ceh)
 
 	csig := &ce.EnvelopeSig
 	(&e.EnvelopeSig).CopyTo(csig)
@@ -711,8 +711,8 @@ func DeCodeEnvelope(ce *CryptEnvelope, key []byte) *Envelope {
 
 	e := &Envelope{}
 
-	eh := &e.EnvelopeHead
-	(&ce.EnvelopeHead).CopyTo(eh)
+	eh := &e.EnvelopeRoute
+	(&ce.EnvelopeRoute).CopyTo(eh)
 	es := &e.EnvelopeSig
 	(&ce.EnvelopeSig).CopyTo(es)
 

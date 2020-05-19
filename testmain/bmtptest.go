@@ -6,10 +6,11 @@ import (
 	"github.com/BASChain/go-bmail-protocol/bmprotocol"
 	"math/rand"
 	"net"
+	"time"
 )
 
 func main() {
-	c := bmclient.NewClient(net.ParseIP("39.99.198.143"), 100)
+	c := bmclient.NewClient(net.ParseIP("127.0.0.1"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
@@ -21,6 +22,8 @@ func main() {
 		fmt.Println(err)
 		return
 	}
+	fmt.Println("wait for recv")
+	time.Sleep(time.Second*20)
 
 	se := NewEnv()
 	se.Sn = c.GetSn()
@@ -38,7 +41,7 @@ func main() {
 
 }
 
-func fillEH(eh *bmprotocol.EnvelopeHead) {
+func fillEH(eh *bmprotocol.EnvelopeRoute) {
 	eh.From = "a@bas"
 	eh.RecpAddr = "b@bas"
 
@@ -51,7 +54,7 @@ func fillEH(eh *bmprotocol.EnvelopeHead) {
 		}
 		break
 	}
-	eh.LPubKey = pubkey
+	//eh.LPubKey = pubkey
 
 	bid := make([]byte, 16)
 
@@ -127,7 +130,7 @@ func fillEC(ec *bmprotocol.EnvelopeContent) {
 func NewEnv() *bmprotocol.SendEnvelope {
 	se := bmprotocol.NewSendEnvelope()
 
-	eh := &se.Envelope.EnvelopeHead
+	eh := &se.Envelope.EnvelopeRoute
 
 	fillEH(eh)
 

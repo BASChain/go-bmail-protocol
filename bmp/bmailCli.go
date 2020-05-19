@@ -62,6 +62,11 @@ func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
 	}
 	defer conn.Close()
 
+	err=conn.Helo()
+	if err!=nil{
+		return err
+	}
+
 	ack := &HELOACK{}
 	if err := conn.ReadWithHeader(ack); err != nil {
 		return err
@@ -95,9 +100,9 @@ func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
 	if err := conn.ReadWithHeader(msgAck); err != nil {
 		return err
 	}
-
-	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
-		return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
-	}
+	//
+	//if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
+	//	return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
+	//}
 	return nil
 }

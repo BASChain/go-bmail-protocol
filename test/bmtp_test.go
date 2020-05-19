@@ -8,7 +8,7 @@ import (
 	"testing"
 )
 
-func fillEH(eh *bmprotocol.EnvelopeHead) {
+func fillEH(eh *bmprotocol.EnvelopeRoute) {
 	eh.From = "a@bas"
 	eh.RecpAddr = "b@bas"
 

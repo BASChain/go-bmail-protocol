@@ -15,3 +15,7 @@ func (c *CryptEnvelope) Hash() []byte {
 	hash := sha256.Sum256(data)
 	return hash[:]
 }
+
+func (c *CryptEnvelope)UnPack(data []byte) error {
+	return json.Unmarshal(data,c)
+}

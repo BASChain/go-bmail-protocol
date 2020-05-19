@@ -8,7 +8,7 @@ import (
 )
 
 func Test_EnvelopeHead(t *testing.T) {
-	eh := &bmprotocol.EnvelopeHead{}
+	eh := &bmprotocol.EnvelopeRoute{}
 
 	eh.From = "a@bas"
 	eh.RecpAddr = "b@bas"
@@ -29,7 +29,7 @@ func Test_EnvelopeHead(t *testing.T) {
 
 	fmt.Println(eh.String())
 
-	ehUnpack := &bmprotocol.EnvelopeHead{}
+	ehUnpack := &bmprotocol.EnvelopeRoute{}
 	ehUnpack.UnPack(data)
 
 	fmt.Println(ehUnpack.String())

@@ -20,6 +20,21 @@ func NewBMConn(ip net.IP) (*BMailConn, error) {
 	return &BMailConn{conn}, nil
 }
 
+func (bc *BMailConn)Helo() error  {
+	header := Header{
+		Ver:    translayer.BMAILVER1,
+		MsgTyp: translayer.HELLO,
+		MsgLen: 0,
+	}
+	data := header.GetBytes()
+	if _, err := bc.Write(data); err != nil {
+		return err
+	}
+
+	return nil
+
+}
+
 func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 	dataV, err := json.Marshal(v)
 	if err != nil {
@@ -32,10 +47,7 @@ func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 		MsgLen: len(dataV),
 	}
 
-	data, err := json.Marshal(header)
-	if err != nil {
-		return err
-	}
+	data := header.GetBytes()
 	if _, err := bc.Write(data); err != nil {
 		return err
 	}
@@ -51,7 +63,7 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 	if _, err := bc.Read(buf); err != nil {
 		return err
 	}
-	if err := json.Unmarshal(buf, header); err != nil {
+	if _,err := header.Derive(buf); err != nil {
 		return err
 	}
 
