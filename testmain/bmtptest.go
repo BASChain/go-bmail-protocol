@@ -1,32 +1,37 @@
 package main
 
 import (
+	"crypto/ed25519"
+	"encoding/json"
 	"fmt"
-	"github.com/BASChain/go-bmail-protocol/bmclient"
-	"github.com/BASChain/go-bmail-protocol/bmprotocol"
+	"github.com/BASChain/go-bas-mail-server/bmailcrypt"
+	"github.com/BASChain/go-bmail-account"
+	"github.com/BASChain/go-bmail-protocol/bmp"
+	"github.com/BASChain/go-bmail-protocol/bmpclient2"
+	"github.com/btcsuite/btcutil/base58"
+	"github.com/google/uuid"
 	"math/rand"
 	"net"
-	"time"
 )
 
 func main() {
-	c := bmclient.NewClient(net.ParseIP("127.0.0.1"), 100)
+	c := bmpclient2.NewClient2(net.ParseIP("39.99.198.143"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
 	}
 	defer c.Close()
 
-	err := c.HeloSendAndRcv()
+	err := c.Helo()
 	if err != nil {
 		fmt.Println(err)
+		//fmt.Println(err)
 		return
 	}
-	fmt.Println("wait for recv")
-	time.Sleep(time.Second*20)
 
-	se := NewEnv()
-	se.Sn = c.GetSn()
+	fmt.Println("get hello ack:", base58.Encode(c.GetSn()))
+	se := NewEnv(c, c.GetSn())
+	//copy(se.SN[:],c.GetSn())
 
 	resp, err1 := c.SendEnvelope(se)
 
@@ -35,112 +40,124 @@ func main() {
 		return
 	}
 
+	if !bmailcrypt.Verify(c.SrvPk, c.Hash, resp.Sig) {
+		fmt.Println("not a correct server")
+	} else {
+		fmt.Println("you bmail have send to a correct server")
+	}
+
 	if resp != nil {
-		fmt.Println(resp.String())
+		jstr, err := json.Marshal(*resp)
+		if err != nil {
+			fmt.Print(err)
+		} else {
+			fmt.Println(string(jstr))
+		}
+
 	}
 
 }
 
-func fillEH(eh *bmprotocol.EnvelopeRoute) {
-	eh.From = "a@bas"
-	eh.RecpAddr = "b@bas"
-
-	pubkey := make([]byte, 32)
+func NewAddr(cnt int) []byte {
+	sn := make([]byte, cnt)
 
 	for {
-		n, _ := rand.Read(pubkey)
-		if n != len(pubkey) {
-			continue
-		}
-		break
-	}
-	//eh.LPubKey = pubkey
-
-	bid := make([]byte, 16)
-
-	for {
-		n, _ := rand.Read(bid)
-		if n != len(bid) {
+		n, _ := rand.Read(sn)
+		if n != len(sn) {
 			continue
 		}
 		break
 	}
 
-	copy(eh.EId[:], bid)
+	return sn
+}
+
+func fillEH(c *bmpclient2.BMClient2, eh *bmp.EnvelopeHead) {
+	eh.From = "testa@eth"
+	eh.To = "testb@eth"
+
+	eh.FromAddr = bmail.ToAddress(c.PK[:])
+	fmt.Println("from addr", eh.FromAddr)
+
+	eh.Eid, _ = uuid.FromBytes(NewAddr(16))
+	eh.ToAddr = "BM7JNBrt8SQX4AGc5fvkjJ9p2bwTt5Wyxnz6af22iHgh2p"
+	fmt.Println("to addr", eh.ToAddr)
+	copy(eh.IV[:], NewAddr(16))
 
 }
 
-func fillET(et *bmprotocol.EnvelopeSig) {
-	iv := make([]byte, 16)
+//
+//func fillET(et *bmprotocol.EnvelopeSig) {
+//	iv := make([]byte, 16)
+//
+//	for {
+//		n, _ := rand.Read(iv)
+//		if n != len(iv) {
+//			continue
+//		}
+//		break
+//	}
+//
+//	sig := make([]byte, 32)
+//
+//	for {
+//		n, _ := rand.Read(sig)
+//		if n != len(sig) {
+//			continue
+//		}
+//		break
+//	}
+//
+//	et.Sn = iv
+//	et.Sig = sig
+//}
 
-	for {
-		n, _ := rand.Read(iv)
-		if n != len(iv) {
-			continue
-		}
-		break
-	}
-
-	sig := make([]byte, 32)
-
-	for {
-		n, _ := rand.Read(sig)
-		if n != len(sig) {
-			continue
-		}
-		break
-	}
-
-	et.Sn = iv
-	et.Sig = sig
-}
-
-func fillEC(ec *bmprotocol.EnvelopeContent) {
-	ec.To = []string{"toa@bas", "tob@bas", "toc@bas"}
-	ec.CC = []string{"cca@bas", "ccb@bas"}
-	ec.BC = []string{"bca@bas"}
+func fillEC(ec *bmp.EnvelopeBody) {
 
 	ec.Subject = "test a ec"
-	ec.Data = "test e content"
+	ec.MsgBody = "test e content"
 
-	hash1 := make([]byte, 16)
-
-	for {
-		n, _ := rand.Read(hash1)
-		if n != len(hash1) {
-			continue
-		}
-		break
-	}
-
-	hash2 := make([]byte, 16)
-
-	for {
-		n, _ := rand.Read(hash2)
-		if n != len(hash2) {
-			continue
-		}
-		break
-	}
-
-	ec.Files = []bmprotocol.Attachment{{"", bmprotocol.FileProperty{hash1, "name.doc", 0, true, 10200}},
-		{"", bmprotocol.FileProperty{hash2, "name2.xls", 1, true, 20400}}}
 }
 
-func NewEnv() *bmprotocol.SendEnvelope {
-	se := bmprotocol.NewSendEnvelope()
+func NewEnv(c *bmpclient2.BMClient2, sn []byte) *bmp.EnvelopeSyn {
+	se := bmp.CryptEnvelope{}
 
-	eh := &se.Envelope.EnvelopeRoute
+	eh := &se.EnvelopeHead
 
-	fillEH(eh)
+	fillEH(c, eh)
 
-	et := &se.Envelope.EnvelopeSig
-
-	fillET(et)
-
-	ec := &se.Envelope.EnvelopeContent
-
+	ec := &bmp.EnvelopeBody{}
 	fillEC(ec)
 
-	return se
+	ecdata, _ := json.Marshal(*ec)
+
+	aesk, _ := bmailcrypt.GenerateAesKey(bmail.Address(eh.ToAddr).ToPubKey(), c.Priv)
+
+	cdata, _ := bmailcrypt.EncryptWithIV(aesk, eh.IV[:], ecdata)
+
+	//todo...
+	se.CryptData = cdata
+
+	es := &bmp.EnvelopeSyn{}
+	es.Env = &se
+
+	es.Mode = 1
+	copy(es.SN[:], sn)
+
+	//osn:=tools.NewSn(128)
+	es.Sig = ed25519.Sign(c.Priv, sn)
+	//fmt.Println("envsyn sn:",base58.Encode(es.SN[:]))
+	//fmt.Println("env sig:",base58.Encode(es.Sig))
+
+	//r:=ed25519.Verify(c.PK,sn,es.Sig)
+	//
+	//
+	//
+	//fmt.Println("env sig verify:",r)
+
+	es.Hash = se.Hash()
+
+	c.Hash = es.Hash
+
+	return es
 }

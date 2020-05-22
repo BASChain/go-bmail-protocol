@@ -62,8 +62,8 @@ func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
 	}
 	defer conn.Close()
 
-	err=conn.Helo()
-	if err!=nil{
+	err = conn.Helo()
+	if err != nil {
 		return err
 	}
 

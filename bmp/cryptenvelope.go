@@ -16,6 +16,6 @@ func (c *CryptEnvelope) Hash() []byte {
 	return hash[:]
 }
 
-func (c *CryptEnvelope)UnPack(data []byte) error {
-	return json.Unmarshal(data,c)
+func (c *CryptEnvelope) UnPack(data []byte) error {
+	return json.Unmarshal(data, c)
 }

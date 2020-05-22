@@ -11,33 +11,27 @@ const (
 	BMAILVER1 uint16 = 1
 	//ED25519 uint16 = 1
 
-
-	CryptModePP uint16 = 9
-	CryptModePSP uint16 = 11
+	CryptModePP   uint16 = 9
+	CryptModePSP  uint16 = 11
 	CryptModePSSP uint16 = 15
-	CryptModePS uint16 = 3
-
+	CryptModePS   uint16 = 3
 )
-
-
 
 //9: pp /11:psp /15: pssp/ 3: ps
 
 type BMTransLayer struct {
-	ver       uint16
-	typ       uint16
-	dataLen   uint32
+	ver     uint16
+	typ     uint16
+	dataLen uint32
 }
 
 var (
 	bmHeaderLen int
 )
 
-
-
 func BMHeadSize() int {
 
-	if bmHeaderLen > 0{
+	if bmHeaderLen > 0 {
 		return bmHeaderLen
 	}
 
@@ -72,7 +66,6 @@ func (bmtl *BMTransLayer) GetVersion() uint16 {
 	return bmtl.ver
 }
 
-
 func (bmtl *BMTransLayer) GetMsgType() uint16 {
 	return bmtl.typ
 }
@@ -89,7 +82,6 @@ func (bmtl *BMTransLayer) String() string {
 func (bmtl *BMTransLayer) SetDataLen(l uint32) {
 	bmtl.dataLen = l
 }
-
 
 func (bmtl *BMTransLayer) GetDataLen() uint32 {
 	return bmtl.dataLen
