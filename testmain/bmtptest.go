@@ -2,6 +2,7 @@ package main
 
 import (
 	"crypto/ed25519"
+	"encoding/binary"
 	"encoding/json"
 	"fmt"
 	"github.com/BASChain/go-bas-mail-server/bmailcrypt"
@@ -13,7 +14,6 @@ import (
 	"math/rand"
 	"net"
 	"time"
-	"encoding/binary"
 )
 
 func main() {
@@ -27,13 +27,11 @@ func main() {
 	err := c.Helo()
 	if err != nil {
 		fmt.Println(err)
-		//fmt.Println(err)
 		return
 	}
 
 	fmt.Println("get hello ack:", base58.Encode(c.GetSn()))
 	se := NewEnv(c, c.GetSn())
-	//copy(se.SN[:],c.GetSn())
 
 	resp, err1 := c.SendEnvelope(se)
 
@@ -71,11 +69,11 @@ func NewAddr(cnt int) []byte {
 		break
 	}
 
-	currentTime:=time.Now().UnixNano()
-	buf:=make([]byte,8)
-	binary.BigEndian.PutUint64(buf,uint64(currentTime))
+	currentTime := time.Now().UnixNano()
+	buf := make([]byte, 8)
+	binary.BigEndian.PutUint64(buf, uint64(currentTime))
 
-	copy(sn,buf)
+	copy(sn, buf)
 
 	return sn
 }
@@ -87,39 +85,12 @@ func fillEH(c *bmpclient2.BMClient2, eh *bmp.EnvelopeHead) {
 	eh.FromAddr = bmail.ToAddress(c.PK[:])
 	fmt.Println("from addr", eh.FromAddr)
 
-
 	eh.Eid, _ = uuid.FromBytes(NewAddr(16))
 	eh.ToAddr = "BM7JNBrt8SQX4AGc5fvkjJ9p2bwTt5Wyxnz6af22iHgh2p"
 	fmt.Println("to addr", eh.ToAddr)
 	copy(eh.IV[:], NewAddr(16))
 
 }
-
-//
-//func fillET(et *bmprotocol.EnvelopeSig) {
-//	iv := make([]byte, 16)
-//
-//	for {
-//		n, _ := rand.Read(iv)
-//		if n != len(iv) {
-//			continue
-//		}
-//		break
-//	}
-//
-//	sig := make([]byte, 32)
-//
-//	for {
-//		n, _ := rand.Read(sig)
-//		if n != len(sig) {
-//			continue
-//		}
-//		break
-//	}
-//
-//	et.Sn = iv
-//	et.Sig = sig
-//}
 
 func fillEC(ec *bmp.EnvelopeBody) {
 
@@ -153,16 +124,7 @@ func NewEnv(c *bmpclient2.BMClient2, sn []byte) *bmp.EnvelopeSyn {
 	es.Mode = 1
 	copy(es.SN[:], sn)
 
-	//osn:=tools.NewSn(128)
 	es.Sig = ed25519.Sign(c.Priv, sn)
-	//fmt.Println("envsyn sn:",base58.Encode(es.SN[:]))
-	//fmt.Println("env sig:",base58.Encode(es.Sig))
-
-	//r:=ed25519.Verify(c.PK,sn,es.Sig)
-	//
-	//
-	//
-	//fmt.Println("env sig verify:",r)
 
 	es.Hash = se.Hash()
 
