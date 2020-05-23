@@ -21,7 +21,9 @@ type CmdDownload struct {
 func (cd *CmdDownload) Hash() []byte {
 	data, _ := json.Marshal(*cd)
 
-	return (sha256.Sum256(data))[:]
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
 
 func (cd *CmdDownload) MsgType() uint16 {
@@ -37,7 +39,9 @@ type CmdState struct {
 func (cs *CmdState) Hash() []byte {
 	data, _ := json.Marshal(*cs)
 
-	return (sha256.Sum256(data))[:]
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
 
 func (cs *CmdState) MsgType() uint16 {
@@ -53,7 +57,9 @@ type CmdDelete struct {
 func (cd *CmdDelete) Hash() []byte {
 	data, _ := json.Marshal(*cd)
 
-	return (sha256.Sum256(data))[:]
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
 
 func (cs *CmdDelete) MsgType() uint16 {
@@ -74,7 +80,10 @@ func (cda *CmdDownloadAck) GetBytes() ([]byte, error) {
 
 func (cda *CmdDownloadAck) Hash() []byte {
 	data, _ := json.Marshal(*cda)
-	return (sha256.Sum256(data))[:]
+
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
 
 type State struct {
@@ -98,7 +107,10 @@ func (csa *CmdStateAck) GetBytes() ([]byte, error) {
 
 func (csa *CmdStateAck) Hash() []byte {
 	data, _ := json.Marshal(*csa)
-	return (sha256.Sum256(data))[:]
+
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
 
 //Result
@@ -127,5 +139,8 @@ func (cda *CmdDeleteAclk) GetBytes() ([]byte, error) {
 
 func (cda *CmdDeleteAclk) Hash() []byte {
 	data, _ := json.Marshal(*cda)
-	return (sha256.Sum256(data))[:]
+
+	hash := sha256.Sum256(data)
+
+	return hash[:]
 }
