@@ -1,6 +1,9 @@
 package bpop
 
-import "github.com/BASChain/go-bmail-protocol/bmp"
+import (
+	"encoding/json"
+	"github.com/BASChain/go-bmail-protocol/bmp"
+)
 
 type Command interface {
 	Hash() []byte
@@ -13,16 +16,46 @@ type CommandSyn struct {
 	Cmd Command     `json:"cmd"`
 }
 
+func (cs *CommandSyn) MsgType() uint16 {
+	return cs.Cmd.MsgType()
+}
+
+func (cs *CommandSyn) GetBytes() ([]byte, error) {
+	return json.Marshal(*cs)
+}
+
+func (cs *CommandSyn) VerifyHeader(header *bmp.Header) bool {
+	return header.MsgTyp == cs.Cmd.MsgType() &&
+		header.MsgLen != 0
+}
+
 type CommandContent interface {
 	MsgType() uint16
 	Hash() []byte
-	GetBytes() ([]byte, error)
 }
+
+const (
+	EC_Success int = iota
+	EC_No_Mail
+)
 
 type CommandAck struct {
 	NextSN    bmp.BMailSN    `json:"next_sn"`
 	Hash      []byte         `json:"hash"`
 	Sig       []byte         `json:"sig"`
 	ErrorCode int            `json:"error_code"`
-	CmdCnt    CommandContent `json:"cmd"`
+	CmdCxt    CommandContent `json:"cmd"`
+}
+
+func (cs *CommandAck) MsgType() uint16 {
+	return cs.CmdCxt.MsgType()
+}
+
+func (cs *CommandAck) GetBytes() ([]byte, error) {
+	return json.Marshal(*cs)
+}
+
+func (cs *CommandAck) VerifyHeader(header *bmp.Header) bool {
+	return header.MsgTyp == cs.CmdCxt.MsgType() &&
+		header.MsgLen != 0
 }

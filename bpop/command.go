@@ -9,7 +9,10 @@ import (
 	"github.com/google/uuid"
 )
 
+const DefaultMailCount int = 20
+
 type CmdDownload struct {
+	MailAddr   string        `json:"mail_addr"`
 	Owner      bmail.Address `json:"owner"`
 	MailCnt    int           `json:"mail_cnt"`
 	BeforeTime int64         `json:"befor_time"`
@@ -26,6 +29,7 @@ func (cd *CmdDownload) MsgType() uint16 {
 }
 
 type CmdState struct {
+	MailAddr  string        `json:"mail_addr"`
 	Owner     bmail.Address `json:"owner"`
 	BeforTime int64         `json:"befor_time"`
 }
@@ -41,8 +45,9 @@ func (cs *CmdState) MsgType() uint16 {
 }
 
 type CmdDelete struct {
-	Owner bmail.Address `json:"owner"`
-	Eids  []uuid.UUID   `json:"eid"`
+	MailAddr string        `json:"mail_addr"`
+	Owner    bmail.Address `json:"owner"`
+	Eids     []uuid.UUID   `json:"eid"`
 }
 
 func (cd *CmdDelete) Hash() []byte {
@@ -53,19 +58,6 @@ func (cd *CmdDelete) Hash() []byte {
 
 func (cs *CmdDelete) MsgType() uint16 {
 	return translayer.DELETE
-}
-
-func (cs *CommandSyn) MsgType() uint16 {
-	return cs.Cmd.MsgType()
-}
-
-func (cs *CommandSyn) GetBytes() ([]byte, error) {
-	return json.Marshal(*cs)
-}
-
-func (cs *CommandSyn) VerifyHeader(header *bmp.Header) bool {
-	return header.MsgTyp == cs.Cmd.MsgType() &&
-		header.MsgLen != 0
 }
 
 type CmdDownloadAck struct {
