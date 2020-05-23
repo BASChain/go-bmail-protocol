@@ -12,6 +12,8 @@ import (
 	"github.com/google/uuid"
 	"math/rand"
 	"net"
+	"time"
+	"encoding/binary"
 )
 
 func main() {
@@ -69,6 +71,12 @@ func NewAddr(cnt int) []byte {
 		break
 	}
 
+	currentTime:=time.Now().UnixNano()
+	buf:=make([]byte,8)
+	binary.BigEndian.PutUint64(buf,uint64(currentTime))
+
+	copy(sn,buf)
+
 	return sn
 }
 
@@ -78,6 +86,7 @@ func fillEH(c *bmpclient2.BMClient2, eh *bmp.EnvelopeHead) {
 
 	eh.FromAddr = bmail.ToAddress(c.PK[:])
 	fmt.Println("from addr", eh.FromAddr)
+
 
 	eh.Eid, _ = uuid.FromBytes(NewAddr(16))
 	eh.ToAddr = "BM7JNBrt8SQX4AGc5fvkjJ9p2bwTt5Wyxnz6af22iHgh2p"
