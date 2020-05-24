@@ -27,14 +27,17 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	if len(mailName) == 0 {
 		return nil, fmt.Errorf("invalid sender account")
 	}
+
 	mailParts := strings.Split(mailName, "@")
 	if len(mailParts) != 2 {
 		return nil, fmt.Errorf("invalid mail name")
 	}
+
 	ips, bcas := r.DomainMX(mailParts[1])
 	if len(ips) == 0 || len(bcas) == 0 {
 		return nil, fmt.Errorf("no valid mx record")
 	}
+
 	srvIP := choseBestServer(ips)
 
 	obj := &BMailClient{
@@ -51,6 +54,17 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 
 func choseBestServer(ips []net.IP) net.IP {
 	return ips[0]
+}
+
+func (bmc *BMailClient) Close() {
+	bmc.Wallet = nil
+	bmc.SrvIP = nil
+	bmc.SrvBcas = nil
+	bmc.resolver = nil
+}
+
+func (bmc *BMailClient) SendP2sMail(re *RawEnvelope) error {
+	return nil
 }
 
 func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
@@ -100,9 +114,10 @@ func (bmc *BMailClient) SendP2pMail(re *RawEnvelope) error {
 	if err := conn.ReadWithHeader(msgAck); err != nil {
 		return err
 	}
-	//
-	//if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
-	//	return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
-	//}
+
+	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
+		return fmt.Errorf("invalid bmail server block chain address:%s", ack.SrvBca)
+	}
+
 	return nil
 }

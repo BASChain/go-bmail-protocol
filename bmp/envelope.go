@@ -6,10 +6,12 @@ import (
 	"github.com/BASChain/go-account"
 	"github.com/BASChain/go-bmail-account"
 	"github.com/google/uuid"
+	"time"
 )
 
 const (
-	BMailModeP2P = iota
+	BMailModeUnknown = iota
+	BMailModeP2P
 	BMailModeP2S
 
 	RcpTypeTo = iota
@@ -28,7 +30,9 @@ type EnvelopeHead struct {
 	To       string        `json:"to"`
 	ToAddr   bmail.Address `json:"toAddr"`
 	IV       BMailIV       `json:"iv"`
+	Date     time.Time     `json:"time"`
 }
+
 type EnvelopeBody struct {
 	Subject string `json:"subject"`
 	MsgBody string `json:"msgBody"`
