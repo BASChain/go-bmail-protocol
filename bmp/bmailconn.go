@@ -58,7 +58,7 @@ func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 }
 
 func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
-	header := &Header{}
+	header := &Header{Ver: translayer.BMAILVER1}
 	buf := make([]byte, header.GetLen())
 	if _, err := bc.Read(buf); err != nil {
 		return err
