@@ -3,6 +3,7 @@ package bpop
 import (
 	"encoding/json"
 	"github.com/BASChain/go-bmail-protocol/bmp"
+	"github.com/BASChain/go-bmail-protocol/translayer"
 )
 
 type Command interface {
@@ -56,6 +57,6 @@ func (cs *CommandAck) GetBytes() ([]byte, error) {
 }
 
 func (cs *CommandAck) VerifyHeader(header *bmp.Header) bool {
-	return header.MsgTyp == cs.CmdCxt.MsgType() &&
-		header.MsgLen != 0 && cs.ErrorCode == 0
+	return header.MsgTyp == translayer.RETR_RESP &&
+		header.MsgLen != 0
 }

@@ -95,7 +95,12 @@ func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 	//if bmc.SrvBcas[ack.SrvBca] == false {
 	//	return fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
 	//}
-	conn, ack, err := bmc.HandShake()
+	conn, err := bmp.NewBMConn(bmc.SrvIP)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	ack, err := bmc.HandShake(conn)
 	if err != nil {
 		return err
 	}
@@ -130,35 +135,34 @@ func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 
 	return nil
 }
-func (bmc *BMailClient) HandShake() (*bmp.BMailConn, *bmp.HELOACK, error) {
-	conn, err := bmp.NewBMConn(bmc.SrvIP)
+func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 
-	if err != nil {
-		return nil, nil, err
-	}
-	defer conn.Close()
-
-	err = conn.Helo()
-	if err != nil {
-		return nil, nil, err
+	if err := conn.Helo(); err != nil {
+		return nil, err
 	}
 
 	ack := &bmp.HELOACK{}
 	if err := conn.ReadWithHeader(ack); err != nil {
-		return nil, nil, err
+		return nil, err
 	}
 	fmt.Println("===hel ack===>", ack)
 	if bmc.SrvBcas[ack.SrvBca] == false {
-		return nil, nil, fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
+		return nil, fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
 	}
 
 	fmt.Println("get hello ack:", ack)
 
-	return conn, ack, nil
+	return ack, nil
 }
 
 func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, error) {
-	conn, ack, err := bmc.HandShake()
+	conn, err := bmp.NewBMConn(bmc.SrvIP)
+	if err != nil {
+		return nil, err
+	}
+	defer conn.Close()
+
+	ack, err := bmc.HandShake(conn)
 	if err != nil {
 		return nil, err
 	}
@@ -179,6 +183,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	}
 
 	cmdAck := &bpop.CommandAck{}
+	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
 	if err := conn.ReadWithHeader(cmdAck); err != nil {
 		return nil, err
 	}
@@ -193,7 +198,9 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//} else {
 	//	fmt.Println("you bmail have send to a correct server")
 	//}
-	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
 
+	fmt.Println("======> bpop ack data=>:", cmdAck, cmdAck.ErrorCode)
+	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
+	fmt.Println("======> CmdDownloadAck:", envs)
 	return envs.CryptEps, nil
 }
