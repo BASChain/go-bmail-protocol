@@ -181,6 +181,5 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 
 	fmt.Println("======> bpop ack data=>:", cmdAck, cmdAck.ErrorCode)
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
-	fmt.Println("======> CmdDownloadAck:", envs)
 	return envs.CryptEps, nil
 }
