@@ -198,7 +198,7 @@ func (c *BMClient2) Helo() (err error) {
 	n, err = c.c.Read(buf)
 	if n != translayer.BMHeadSize() || err != nil {
 		fmt.Println(err, n)
-		return errors.New("Read a bad bmail head")
+		return errors.New("helo Read a bad bmail head")
 	}
 
 	bmtl := &translayer.BMTransLayer{}
@@ -213,7 +213,7 @@ func (c *BMClient2) Helo() (err error) {
 
 	n, err = c.c.Read(buf)
 	if n != int(bmtl.GetDataLen()) || err != nil {
-		return errors.New("Read a bad bmail data")
+		return errors.New("helo Read a bad bmail data")
 	}
 
 	ha := &bmp.HELOACK{}
@@ -279,6 +279,7 @@ func (c *BMClient2) SendEnvelope(envelope *bmp.EnvelopeSyn) (rse *bmp.EnvelopeAc
 
 	n, err = c.c.Read(buf)
 	if n != int(bmtl.GetDataLen()) || err != nil {
+		fmt.Println(err)
 		return nil, errors.New("Read a bad bmail data")
 	}
 

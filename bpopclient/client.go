@@ -22,6 +22,7 @@ import (
 	"path/filepath"
 	"strconv"
 	"time"
+	"io"
 )
 
 type BMClient2 struct {
@@ -199,7 +200,7 @@ func (c *BMClient2) Helo() (err error) {
 	n, err = c.c.Read(buf)
 	if n != translayer.BMHeadSize() || err != nil {
 		fmt.Println(err, n)
-		return errors.New("Read a bad bmail head")
+		return errors.New("helo Read a bad bmail head")
 	}
 
 	bmtl := &translayer.BMTransLayer{}
@@ -214,7 +215,7 @@ func (c *BMClient2) Helo() (err error) {
 
 	n, err = c.c.Read(buf)
 	if n != int(bmtl.GetDataLen()) || err != nil {
-		return errors.New("Read a bad bmail data")
+		return errors.New("helo Read a bad bmail data")
 	}
 
 	ha := &bmp.HELOACK{}
@@ -265,7 +266,6 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 
 	n, err = c.c.Read(buf)
 	if n != translayer.BMHeadSize() || err != nil {
-		fmt.Println(err)
 		return nil, errors.New("Read a bad bmail head")
 	}
 
@@ -277,10 +277,35 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 	}
 
 	buf = make([]byte, bmtl.GetDataLen())
+	//
+	//
+	//n, err = c.c.Read(buf)
+	//if n != int(bmtl.GetDataLen()) || err != nil {
+	//	fmt.Println(err)
+	//	return nil, errors.New("Read a bad bmail data")
+	//}
 
-	n, err = c.c.Read(buf)
-	if n != int(bmtl.GetDataLen()) || err != nil {
-		return nil, errors.New("Read a bad bmail data")
+	totaln := 0
+
+	for {
+		n, err := c.c.Read(buf[totaln:])
+		if err != nil {
+			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				totaln += n
+				continue
+			} else if err != io.EOF {
+				log.Println("read error", err)
+				return nil,err
+			}
+		}
+		if n == 0 {
+			break
+		}
+
+		totaln += n
+		if totaln == int(bmtl.GetDataLen()){
+			break
+		}
 	}
 
 	resp := &bpop.CommandAck{}
