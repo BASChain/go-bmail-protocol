@@ -57,5 +57,5 @@ func (cs *CommandAck) GetBytes() ([]byte, error) {
 
 func (cs *CommandAck) VerifyHeader(header *bmp.Header) bool {
 	return header.MsgTyp == cs.CmdCxt.MsgType() &&
-		header.MsgLen != 0
+		header.MsgLen != 0 && cs.ErrorCode == 0
 }
