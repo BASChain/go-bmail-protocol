@@ -7,7 +7,8 @@ import (
 
 type CryptEnvelope struct {
 	EnvelopeHead
-	CryptData []byte `json:"cryptBody"`
+	CryptSub  []byte `json:"cryptBody"`
+	CryptBody []byte `json:"cryptBody"`
 }
 
 func (c *CryptEnvelope) Hash() []byte {

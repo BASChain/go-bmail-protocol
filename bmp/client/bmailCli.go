@@ -75,26 +75,6 @@ func (bmc *BMailClient) SendP2sMail(re *bmp.RawEnvelope) error {
 
 func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 
-	//conn, err := NewBMConn(bmc.SrvIP)
-	//
-	//if err != nil {
-	//	return err
-	//}
-	//defer conn.Close()
-	//
-	//err = conn.Helo()
-	//if err != nil {
-	//	return err
-	//}
-	//
-	//ack := &HELOACK{}
-	//if err := conn.ReadWithHeader(ack); err != nil {
-	//	return err
-	//}
-	//fmt.Println("===hel ack===>", ack)
-	//if bmc.SrvBcas[ack.SrvBca] == false {
-	//	return fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
-	//}
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
 		return err

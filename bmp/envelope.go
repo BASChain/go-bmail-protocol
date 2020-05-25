@@ -49,24 +49,19 @@ func (re *RawEnvelope) Seal(key []byte) (Envelope, error) {
 		return nil, err
 	}
 
-	cc := &EnvelopeBody{
-		Subject: re.Subject,
-		MsgBody: re.MsgBody,
-	}
-
-	ccData, err := json.Marshal(cc)
+	encodeSub, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.Subject))
 	if err != nil {
 		return nil, err
 	}
-
-	encoded, err := account.EncryptWithIV(key, iv.Bytes(), ccData)
+	encodeMsg, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.MsgBody))
 	if err != nil {
 		return nil, err
 	}
 
 	obj := &CryptEnvelope{
 		EnvelopeHead: re.EnvelopeHead,
-		CryptData:    encoded,
+		CryptSub:     encodeSub,
+		CryptBody:    encodeMsg,
 	}
 	obj.IV = *iv
 
