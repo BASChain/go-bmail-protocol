@@ -48,10 +48,12 @@ func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 	}
 
 	data := header.GetBytes()
-	if _, err := bc.Write(data); err != nil {
+	if n, err := bc.Write(data); err != nil {
+		fmt.Println("write header len:", n)
 		return err
 	}
-	if _, err := bc.Write(dataV); err != nil {
+	if n, err := bc.Write(dataV); err != nil {
+		fmt.Println("write body len:", n)
 		return err
 	}
 	return nil
