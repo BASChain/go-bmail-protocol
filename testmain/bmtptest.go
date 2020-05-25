@@ -109,14 +109,18 @@ func NewEnv(c *bmpclient2.BMClient2, sn []byte) *bmp.EnvelopeSyn {
 	ec := &bmp.EnvelopeBody{}
 	fillEC(ec)
 
-	ecdata, _ := json.Marshal(*ec)
+	//ecdata, _ := json.Marshal(*ec)
 
 	aesk, _ := bmailcrypt.GenerateAesKey(bmail.Address(eh.ToAddr).ToPubKey(), c.Priv)
 
-	cdata, _ := bmailcrypt.EncryptWithIV(aesk, eh.IV[:], ecdata)
+	cdata, _ := bmailcrypt.EncryptWithIV(aesk, eh.IV[:], []byte(ec.MsgBody))
+
+	sdata, _ := bmailcrypt.EncryptWithIV(aesk, eh.IV[:], []byte(ec.Subject))
 
 	//todo...
-	se.CryptData = cdata
+	se.CryptBody = cdata
+	se.CryptSub = sdata
+
 
 	es := &bmp.EnvelopeSyn{}
 	es.Env = &se

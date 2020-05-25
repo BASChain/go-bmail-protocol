@@ -58,8 +58,10 @@ func main() {
 		fmt.Println(string(jstr))
 
 		aesk, _ := bmailcrypt.GenerateAesKey(bmail.Address(cep.FromAddr).ToPubKey(), c.Priv)
-		plainx, _ := bmailcrypt.Decrypt(aesk, cep.CryptData)
-		fmt.Println(string(plainx))
+		plainsub, _ := bmailcrypt.Decrypt(aesk, cep.CryptSub)
+		plainbody, _ := bmailcrypt.Decrypt(aesk, cep.CryptBody)
+		fmt.Println(string(plainsub))
+		fmt.Println(string(plainbody))
 	}
 
 }
