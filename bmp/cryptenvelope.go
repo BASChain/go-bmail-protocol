@@ -7,7 +7,7 @@ import (
 
 type CryptEnvelope struct {
 	EnvelopeHead
-	CryptSub  []byte `json:"cryptBody"`
+	CryptSub  []byte `json:"cryptSub"`
 	CryptBody []byte `json:"cryptBody"`
 }
 
