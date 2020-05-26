@@ -169,24 +169,19 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//	fmt.Println("hash error")
 	//	return
 	//}
-	//
-	//if !bmailcrypt.Verify(c.SrvPk, hash, resp.Sig) {
-	//	fmt.Println("not a correct server")
-	//} else {
-	//	fmt.Println("you bmail have send to a correct server")
+	fmt.Println("envelope ack======>:", cmdAck)
+
+	if cmdAck.ErrorCode != 0 {
+		if cmdAck.ErrorCode == 1 {
+			return make([]bmp.CryptEnvelope, 0), nil
+		}
+		return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
+	}
+
+	//if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
+	//	return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	//}
 
-	if ack.ErrCode != 0 {
-		if ack.ErrCode == 1 {
-			return make([]bmp.CryptEnvelope, 0), nil
-		} else {
-			return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
-		}
-	}
-
-	if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
-		return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
-	}
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
 	return envs.CryptEps, nil
 }
