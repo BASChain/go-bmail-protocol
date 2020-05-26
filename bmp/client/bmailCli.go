@@ -132,12 +132,14 @@ func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, error) {
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
+		fmt.Println("NewBMConn------>", err)
 		return nil, err
 	}
 	defer conn.Close()
 
 	ack, err := bmc.HandShake(conn)
 	if err != nil {
+		fmt.Println("HandShake------>", err)
 		return nil, err
 	}
 	sig := bmc.Wallet.Sign(ack.SN[:])
@@ -153,11 +155,13 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	}
 
 	if err := conn.SendWithHeader(cmd); err != nil {
+		fmt.Println("SendWithHeader------>", err)
 		return nil, err
 	}
 	cmdAck := &bpop.CommandAck{}
 	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
 	if err := conn.ReadWithHeader(cmdAck); err != nil {
+		fmt.Println("ReadWithHeader------>", err)
 		return nil, err
 	}
 	//hash := resp.CmdCxt.Hash()
@@ -171,6 +175,15 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//} else {
 	//	fmt.Println("you bmail have send to a correct server")
 	//}
+
+	if ack.ErrCode != 0 {
+		if ack.ErrCode == 1 {
+			return make([]bmp.CryptEnvelope, 0), nil
+		} else {
+			return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
+		}
+	}
+
 	if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
 		return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	}
