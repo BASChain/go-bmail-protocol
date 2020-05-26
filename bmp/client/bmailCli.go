@@ -169,7 +169,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//	fmt.Println("hash error")
 	//	return
 	//}
-	fmt.Println("envelope ack======>:", cmdAck)
+	//fmt.Println("envelope ack======>:", cmdAck)
 
 	if cmdAck.ErrorCode != 0 {
 		if cmdAck.ErrorCode == 1 {
