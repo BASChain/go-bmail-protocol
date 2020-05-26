@@ -6,7 +6,6 @@ import (
 	"github.com/BASChain/go-bmail-protocol/bmp"
 	"github.com/BASChain/go-bmail-protocol/bpop"
 	resolver "github.com/BASChain/go-bmail-resolver"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net"
 	"strings"
 )
@@ -108,7 +107,6 @@ func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 	if err := conn.ReadWithHeader(msgAck); err != nil {
 		return err
 	}
-	fmt.Println("===envelop ack===>", msgAck, hexutil.Encode(synHash), hexutil.Encode(msgAck.Hash))
 	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
 		return fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	}
@@ -125,13 +123,9 @@ func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 	if err := conn.ReadWithHeader(ack); err != nil {
 		return nil, err
 	}
-	fmt.Println("===hel ack===>", ack)
 	if bmc.SrvBcas[ack.SrvBca] == false {
 		return nil, fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
 	}
-
-	fmt.Println("get hello ack:", ack)
-
 	return ack, nil
 }
 
