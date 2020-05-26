@@ -161,7 +161,6 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	if err := conn.SendWithHeader(cmd); err != nil {
 		return nil, err
 	}
-
 	cmdAck := &bpop.CommandAck{}
 	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
 	if err := conn.ReadWithHeader(cmdAck); err != nil {
@@ -178,12 +177,9 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//} else {
 	//	fmt.Println("you bmail have send to a correct server")
 	//}
-
 	if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
 		return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	}
-
-	fmt.Println("======> bpop ack data=>:", cmdAck, cmdAck.ErrorCode)
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
 	return envs.CryptEps, nil
 }
