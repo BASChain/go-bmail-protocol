@@ -9,7 +9,12 @@ import (
 	"github.com/google/uuid"
 )
 
-const DefaultMailCount int = 20
+const (
+	DefaultMailCount int = 20
+	DirectionToLeft bool = true
+	DirectionToRight bool = false
+)
+
 
 type CmdDownload struct {
 	MailAddr  string        `json:"mail_addr"`

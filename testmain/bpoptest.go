@@ -82,10 +82,10 @@ func NewDownloadCmd(c *bpopclient.BMClient2, sn []byte, t int64) *bpop.CommandSy
 	copy(csyn.SN[:], sn)
 	csyn.Sig = ed25519.Sign(c.Priv, sn)
 
-	cdl.MailCnt = 10
+	cdl.MailCnt = 20
 
 	cdl.TimePivot = t
-	cdl.Direction = true
+	cdl.Direction = bpop.DirectionToLeft
 	cdl.Owner = bmail.ToAddress(c.PK)
 	cdl.MailAddr = "testb@eth"
 
