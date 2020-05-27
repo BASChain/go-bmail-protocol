@@ -15,7 +15,6 @@ import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/howeyc/gopass"
 	"github.com/kprc/nbsnetwork/tools"
-	"io"
 	"log"
 	"net"
 	"os"
@@ -290,23 +289,35 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 	for {
 		n, err := c.c.Read(buf[total:])
 		if err != nil {
-			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-				total += n
-				continue
-			} else if err != io.EOF {
-				return nil, err
-			}
-			total += n
-		} else {
-			total += n
+			return nil, err
 		}
-		if n == 0 && err == io.EOF {
-			return nil, errors.New("no data to read")
-		}
+
+		total += n
 		if total >= int(bmtl.GetDataLen()) {
 			break
 		}
 	}
+
+	//for {
+	//	n, err := c.c.Read(buf[total:])
+	//	if err != nil {
+	//		if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+	//			total += n
+	//			continue
+	//		} else if err != io.EOF {
+	//			return nil, err
+	//		}
+	//		total += n
+	//	} else {
+	//		total += n
+	//	}
+	//	if n == 0 && err == io.EOF {
+	//		return nil, errors.New("no data to read")
+	//	}
+	//	if total >= int(bmtl.GetDataLen()) {
+	//		break
+	//	}
+	//}
 
 	resp := &bpop.CommandAck{}
 	resp.CmdCxt = &bpop.CmdDownloadAck{}
