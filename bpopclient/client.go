@@ -288,7 +288,7 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 
 	for {
 		n, err := c.c.Read(buf[total:])
-		if err != nil {
+		if err != nil && total < int(bmtl.GetDataLen()) {
 			return nil, err
 		}
 
