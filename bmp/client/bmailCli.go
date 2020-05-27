@@ -147,10 +147,11 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 		Sig: sig,
 		SN:  ack.SN,
 		Cmd: &bpop.CmdDownload{
-			MailCnt:    20,
-			BeforeTime: timeSince1970,
-			Owner:      bmc.Wallet.Address(),
-			MailAddr:   bmc.Wallet.MailAddress(),
+			MailCnt:   20,
+			TimePivot: timeSince1970,
+			Direction: true,
+			Owner:     bmc.Wallet.Address(),
+			MailAddr:  bmc.Wallet.MailAddress(),
 		},
 	}
 

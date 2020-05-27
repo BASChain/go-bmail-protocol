@@ -15,8 +15,8 @@ type CmdDownload struct {
 	MailAddr  string        `json:"mail_addr"`
 	Owner     bmail.Address `json:"owner"`
 	MailCnt   int           `json:"mail_cnt"`
-	BeginTime int64         `json:"begin_time"`
-	EndTime   int64         `json:"end_time"`
+	Direction bool          `json:"direction"` //false -> after TimePivot, true -> before TimePivot
+	TimePivot int64         `json:"time_pivot"`
 }
 
 func (cd *CmdDownload) Hash() []byte {
