@@ -15,6 +15,7 @@ import (
 	"github.com/BASChain/go-bmail-protocol/translayer"
 	"github.com/howeyc/gopass"
 	"github.com/kprc/nbsnetwork/tools"
+	"io"
 	"log"
 	"net"
 	"os"
@@ -275,39 +276,31 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 		return nil, errors.New("Received a error message: " + strconv.Itoa(int(bmtl.GetMsgType())))
 	}
 
-	buf = make([]byte, bmtl.GetDataLen() )
+	buf = make([]byte, bmtl.GetDataLen())
 
-
-	n, err = c.c.Read(buf)
-	if n != int(bmtl.GetDataLen()) || err != nil {
-		fmt.Println(err)
-		return nil, errors.New("Read a bad bmail data")
-	}
-
-	//c.c.SetDeadline(time.Now().Add(time.Second*15))
 	//
-	//totaln := 0
-	//
-	//for {
-	//	n, err := c.c.Read(buf[totaln:])
-	//	if err != nil {
-	//		if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-	//			totaln += n
-	//			continue
-	//		} else if err != io.EOF {
-	//			log.Println("read error", err)
-	//			return nil,err
-	//		}
-	//	}
-	//	if n == 0 {
-	//		break
-	//	}
-	//
-	//	totaln += n
-	//	if totaln == int(bmtl.GetDataLen()) {
-	//		break
-	//	}
+	//n, err = c.c.Read(buf)
+	//if n != int(bmtl.GetDataLen()) || err != nil {
+	//	fmt.Println(err)
+	//	return nil, errors.New("Read a bad bmail data")
 	//}
+
+	for {
+		n, err := c.c.Read(buf)
+		if err != nil {
+			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				continue
+			} else if err != io.EOF {
+				log.Println("read error", err)
+				return nil, err
+			}
+		}
+		if n == 0 {
+			return nil, errors.New("no data to read")
+		}
+
+		break
+	}
 
 	resp := &bpop.CommandAck{}
 	resp.CmdCxt = &bpop.CmdDownloadAck{}
