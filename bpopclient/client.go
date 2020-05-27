@@ -285,21 +285,27 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 	//	return nil, errors.New("Read a bad bmail data")
 	//}
 
+	total := 0
+
 	for {
-		n, err := c.c.Read(buf)
+		n, err := c.c.Read(buf[total:])
 		if err != nil {
 			if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
+				total += n
 				continue
 			} else if err != io.EOF {
-				log.Println("read error", err)
 				return nil, err
 			}
+			total += n
+		} else {
+			total += n
 		}
-		if n == 0 {
+		if n == 0 && err == io.EOF {
 			return nil, errors.New("no data to read")
 		}
-
-		break
+		if total >= int(bmtl.GetDataLen()) {
+			break
+		}
 	}
 
 	resp := &bpop.CommandAck{}

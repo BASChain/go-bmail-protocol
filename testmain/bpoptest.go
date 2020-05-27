@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	c := bpopclient.NewClient2(net.ParseIP("47.113.87.58"), 100)
+	c := bpopclient.NewClient2(net.ParseIP("149.28.19.223"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
