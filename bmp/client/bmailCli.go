@@ -142,6 +142,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 		fmt.Println("HandShake------>", err)
 		return nil, err
 	}
+	fmt.Println("HandShake------success>")
 	sig := bmc.Wallet.Sign(ack.SN[:])
 	cmd := &bpop.CommandSyn{
 		Sig: sig,
@@ -159,6 +160,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 		fmt.Println("SendWithHeader------>", err)
 		return nil, err
 	}
+	fmt.Println("======>:SendWithHeader success>", timeSince1970)
 	cmdAck := &bpop.CommandAck{}
 	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
 	if err := conn.ReadWithHeader(cmdAck); err != nil {
@@ -170,7 +172,6 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 	//	fmt.Println("hash error")
 	//	return
 	//}
-	//fmt.Println("envelope ack======>:", cmdAck)
 
 	if cmdAck.ErrorCode != 0 {
 		if cmdAck.ErrorCode == 1 {
@@ -184,5 +185,6 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 	//}
 
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
+	fmt.Println("======>:envelope loaded success=>", len(envs.CryptEps))
 	return envs.CryptEps, nil
 }

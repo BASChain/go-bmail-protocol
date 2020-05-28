@@ -90,17 +90,6 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 			break
 		}
 	}
-
-	n, err := bc.Read(buf)
-	if err != nil {
-		fmt.Println("bc.Read:", err)
-		return err
-	}
-	if n != header.MsgLen {
-		fmt.Println("bc.Read:", n, header.MsgLen)
-		return fmt.Errorf("read %d of %d", n, header.MsgLen)
-	}
-
 	if err := json.Unmarshal(buf, v); err != nil {
 		fmt.Println("json.Unmarshal:", err)
 		return err
