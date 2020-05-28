@@ -129,7 +129,7 @@ func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 	return ack, nil
 }
 
-func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, error) {
+func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, maxCount int) ([]bmp.CryptEnvelope, error) {
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
 		fmt.Println("NewBMConn------>", err)
@@ -147,9 +147,9 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 		Sig: sig,
 		SN:  ack.SN,
 		Cmd: &bpop.CmdDownload{
-			MailCnt:   20,
+			MailCnt:   maxCount,
 			TimePivot: timeSince1970,
-			Direction: true,
+			Direction: olderThanSince,
 			Owner:     bmc.Wallet.Address(),
 			MailAddr:  bmc.Wallet.MailAddress(),
 		},

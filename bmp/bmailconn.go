@@ -77,8 +77,20 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 	if header.MsgLen == 0 {
 		return nil
 	}
-
 	buf = make([]byte, header.MsgLen)
+	offset := 0
+	for {
+		n, err := bc.Read(buf[offset:])
+		if err != nil {
+			fmt.Println("bc.Read:", err)
+			return err
+		}
+		offset += n
+		if offset >= header.MsgLen {
+			break
+		}
+	}
+
 	n, err := bc.Read(buf)
 	if err != nil {
 		fmt.Println("bc.Read:", err)
