@@ -9,13 +9,19 @@ import (
 	"github.com/google/uuid"
 )
 
-const DefaultMailCount int = 20
+const (
+	DefaultMailCount int = 20
+	DirectionToLeft bool = true
+	DirectionToRight bool = false
+)
+
 
 type CmdDownload struct {
-	MailAddr   string        `json:"mail_addr"`
-	Owner      bmail.Address `json:"owner"`
-	MailCnt    int           `json:"mail_cnt"`
-	BeforeTime int64         `json:"befor_time"`
+	MailAddr  string        `json:"mail_addr"`
+	Owner     bmail.Address `json:"owner"`
+	MailCnt   int           `json:"mail_cnt"`
+	Direction bool          `json:"direction"` //false -> after TimePivot, true -> before TimePivot
+	TimePivot int64         `json:"time_pivot"`
 }
 
 func (cd *CmdDownload) Hash() []byte {
@@ -33,7 +39,7 @@ func (cd *CmdDownload) MsgType() uint16 {
 type CmdState struct {
 	MailAddr  string        `json:"mail_addr"`
 	Owner     bmail.Address `json:"owner"`
-	BeforTime int64         `json:"befor_time"`
+	BeforTime int64         `json:"before_time"`
 }
 
 func (cs *CmdState) Hash() []byte {
@@ -125,19 +131,19 @@ type CmdResult struct {
 	Result int       `json:"result"`
 }
 
-type CmdDeleteAclk struct {
+type CmdDeleteAck struct {
 	Result []CmdResult `json:"result"`
 }
 
-func (cda *CmdDeleteAclk) MsgType() uint16 {
+func (cda *CmdDeleteAck) MsgType() uint16 {
 	return translayer.DELETE_RESP
 }
 
-func (cda *CmdDeleteAclk) GetBytes() ([]byte, error) {
+func (cda *CmdDeleteAck) GetBytes() ([]byte, error) {
 	return json.Marshal(*cda)
 }
 
-func (cda *CmdDeleteAclk) Hash() []byte {
+func (cda *CmdDeleteAck) Hash() []byte {
 	data, _ := json.Marshal(*cda)
 
 	hash := sha256.Sum256(data)

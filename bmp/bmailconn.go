@@ -66,6 +66,7 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 		return err
 	}
 	if _, err := header.Derive(buf); err != nil {
+		fmt.Println("header.Derive:", err)
 		return err
 	}
 
@@ -77,11 +78,20 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 		return nil
 	}
 	buf = make([]byte, header.MsgLen)
-	if _, err := bc.Read(buf); err != nil {
-		return err
+	offset := 0
+	for {
+		n, err := bc.Read(buf[offset:])
+		if err != nil {
+			fmt.Println("bc.Read:", err)
+			return err
+		}
+		offset += n
+		if offset >= header.MsgLen {
+			break
+		}
 	}
-
 	if err := json.Unmarshal(buf, v); err != nil {
+		fmt.Println("json.Unmarshal:", err)
 		return err
 	}
 	return nil

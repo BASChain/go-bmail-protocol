@@ -30,7 +30,7 @@ type EnvelopeHead struct {
 	To       string        `json:"to"`
 	ToAddr   bmail.Address `json:"toAddr"`
 	IV       BMailIV       `json:"iv"`
-	Date     time.Time     `json:"time"`
+	Date     time.Duration `json:"timeSince1970"`
 }
 
 type EnvelopeBody struct {

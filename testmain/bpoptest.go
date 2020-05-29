@@ -15,7 +15,7 @@ import (
 )
 
 func main() {
-	c := bpopclient.NewClient2(net.ParseIP("39.99.198.143"), 100)
+	c := bpopclient.NewClient2(net.ParseIP("149.28.19.223"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
@@ -28,8 +28,12 @@ func main() {
 		return
 	}
 
+	//if len(os.Args)>1{
+	//	t:=strconv.Atoi(os.Args[1])
+	//}
+
 	fmt.Println("get hello ack:", base58.Encode(c.GetSn()))
-	se := NewDownloadCmd(c, c.GetSn())
+	se := NewDownloadCmd(c, c.GetSn(), tools.GetNowMsTime())
 
 	resp, err1 := c.SendCommand(se)
 
@@ -62,11 +66,12 @@ func main() {
 		plainbody, _ := bmailcrypt.Decrypt(aesk, cep.CryptBody)
 		fmt.Println(string(plainsub))
 		fmt.Println(string(plainbody))
+		fmt.Println(int64(cep.EnvelopeHead.Date))
 	}
 
 }
 
-func NewDownloadCmd(c *bpopclient.BMClient2, sn []byte) *bpop.CommandSyn {
+func NewDownloadCmd(c *bpopclient.BMClient2, sn []byte, t int64) *bpop.CommandSyn {
 
 	csyn := &bpop.CommandSyn{}
 
@@ -77,9 +82,10 @@ func NewDownloadCmd(c *bpopclient.BMClient2, sn []byte) *bpop.CommandSyn {
 	copy(csyn.SN[:], sn)
 	csyn.Sig = ed25519.Sign(c.Priv, sn)
 
-	cdl.MailCnt = 5
+	cdl.MailCnt = 20
 
-	cdl.BeforeTime = tools.GetNowMsTime()
+	cdl.TimePivot = t
+	cdl.Direction = bpop.DirectionToLeft
 	cdl.Owner = bmail.ToAddress(c.PK)
 	cdl.MailAddr = "testb@eth"
 

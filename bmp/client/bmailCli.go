@@ -6,7 +6,6 @@ import (
 	"github.com/BASChain/go-bmail-protocol/bmp"
 	"github.com/BASChain/go-bmail-protocol/bpop"
 	resolver "github.com/BASChain/go-bmail-resolver"
-	"github.com/ethereum/go-ethereum/common/hexutil"
 	"net"
 	"strings"
 )
@@ -108,7 +107,6 @@ func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 	if err := conn.ReadWithHeader(msgAck); err != nil {
 		return err
 	}
-	fmt.Println("===envelop ack===>", msgAck, hexutil.Encode(synHash), hexutil.Encode(msgAck.Hash))
 	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
 		return fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	}
@@ -125,46 +123,48 @@ func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 	if err := conn.ReadWithHeader(ack); err != nil {
 		return nil, err
 	}
-	fmt.Println("===hel ack===>", ack)
 	if bmc.SrvBcas[ack.SrvBca] == false {
 		return nil, fmt.Errorf("invalid bmail server block chain address:[%s]", ack.SrvBca)
 	}
-
-	fmt.Println("get hello ack:", ack)
-
 	return ack, nil
 }
 
-func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, error) {
+func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, maxCount int) ([]bmp.CryptEnvelope, error) {
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
+		fmt.Println("NewBMConn------>", err)
 		return nil, err
 	}
 	defer conn.Close()
 
 	ack, err := bmc.HandShake(conn)
 	if err != nil {
+		fmt.Println("HandShake------>", err)
 		return nil, err
 	}
+	fmt.Println("HandShake------success>")
 	sig := bmc.Wallet.Sign(ack.SN[:])
 	cmd := &bpop.CommandSyn{
 		Sig: sig,
 		SN:  ack.SN,
 		Cmd: &bpop.CmdDownload{
-			MailCnt:    20,
-			BeforeTime: timeSince1970,
-			Owner:      bmc.Wallet.Address(),
-			MailAddr:   bmc.Wallet.MailAddress(),
+			MailCnt:   maxCount,
+			TimePivot: timeSince1970,
+			Direction: olderThanSince,
+			Owner:     bmc.Wallet.Address(),
+			MailAddr:  bmc.Wallet.MailAddress(),
 		},
 	}
 
 	if err := conn.SendWithHeader(cmd); err != nil {
+		fmt.Println("SendWithHeader------>", err)
 		return nil, err
 	}
-
+	fmt.Println("======>:SendWithHeader success>", timeSince1970)
 	cmdAck := &bpop.CommandAck{}
 	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
 	if err := conn.ReadWithHeader(cmdAck); err != nil {
+		fmt.Println("ReadWithHeader------>", err)
 		return nil, err
 	}
 	//hash := resp.CmdCxt.Hash()
@@ -172,14 +172,19 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64) ([]bmp.CryptEnvelope, er
 	//	fmt.Println("hash error")
 	//	return
 	//}
-	//
-	//if !bmailcrypt.Verify(c.SrvPk, hash, resp.Sig) {
-	//	fmt.Println("not a correct server")
-	//} else {
-	//	fmt.Println("you bmail have send to a correct server")
+
+	if cmdAck.ErrorCode != 0 {
+		if cmdAck.ErrorCode == 1 {
+			return make([]bmp.CryptEnvelope, 0), nil
+		}
+		return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
+	}
+
+	//if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
+	//	return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
 	//}
 
-	fmt.Println("======> bpop ack data=>:", cmdAck, cmdAck.ErrorCode)
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
+	fmt.Println("======>:envelope loaded success=>", len(envs.CryptEps))
 	return envs.CryptEps, nil
 }

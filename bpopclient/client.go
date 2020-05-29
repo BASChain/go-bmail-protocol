@@ -275,36 +275,46 @@ func (c *BMClient2) SendCommand(cmd *bpop.CommandSyn) (ca *bpop.CommandAck, err 
 		return nil, errors.New("Received a error message: " + strconv.Itoa(int(bmtl.GetMsgType())))
 	}
 
-	buf = make([]byte, bmtl.GetDataLen() )
+	buf = make([]byte, bmtl.GetDataLen())
 
+	//
+	//n, err = c.c.Read(buf)
+	//if n != int(bmtl.GetDataLen()) || err != nil {
+	//	fmt.Println(err)
+	//	return nil, errors.New("Read a bad bmail data")
+	//}
 
-	n, err = c.c.Read(buf)
-	if n != int(bmtl.GetDataLen()) || err != nil {
-		fmt.Println(err)
-		return nil, errors.New("Read a bad bmail data")
+	total := 0
+
+	for {
+		n, err := c.c.Read(buf[total:])
+		if err != nil && total < int(bmtl.GetDataLen()) {
+			return nil, err
+		}
+
+		total += n
+		if total >= int(bmtl.GetDataLen()) {
+			break
+		}
 	}
 
-	//c.c.SetDeadline(time.Now().Add(time.Second*15))
-	//
-	//totaln := 0
-	//
 	//for {
-	//	n, err := c.c.Read(buf[totaln:])
+	//	n, err := c.c.Read(buf[total:])
 	//	if err != nil {
 	//		if opErr, ok := err.(*net.OpError); ok && opErr.Timeout() {
-	//			totaln += n
+	//			total += n
 	//			continue
 	//		} else if err != io.EOF {
-	//			log.Println("read error", err)
-	//			return nil,err
+	//			return nil, err
 	//		}
+	//		total += n
+	//	} else {
+	//		total += n
 	//	}
-	//	if n == 0 {
-	//		break
+	//	if n == 0 && err == io.EOF {
+	//		return nil, errors.New("no data to read")
 	//	}
-	//
-	//	totaln += n
-	//	if totaln == int(bmtl.GetDataLen()) {
+	//	if total >= int(bmtl.GetDataLen()) {
 	//		break
 	//	}
 	//}

@@ -17,7 +17,7 @@ import (
 )
 
 func main() {
-	c := bmpclient2.NewClient2(net.ParseIP("39.99.198.143"), 100)
+	c := bmpclient2.NewClient2(net.ParseIP("149.28.19.223"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
@@ -89,6 +89,7 @@ func fillEH(c *bmpclient2.BMClient2, eh *bmp.EnvelopeHead) {
 	eh.ToAddr = "BM7JNBrt8SQX4AGc5fvkjJ9p2bwTt5Wyxnz6af22iHgh2p"
 	fmt.Println("to addr", eh.ToAddr)
 	copy(eh.IV[:], NewAddr(16))
+	eh.Date = time.Duration(time.Now().UnixNano() / 1e6)
 
 }
 
@@ -120,7 +121,6 @@ func NewEnv(c *bmpclient2.BMClient2, sn []byte) *bmp.EnvelopeSyn {
 	//todo...
 	se.CryptBody = cdata
 	se.CryptSub = sdata
-
 
 	es := &bmp.EnvelopeSyn{}
 	es.Env = &se
