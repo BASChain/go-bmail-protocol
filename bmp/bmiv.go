@@ -8,12 +8,15 @@ import (
 
 type BMailIV [aes.BlockSize]byte
 
-func NewIV() (*BMailIV, error) {
-	iv := new(BMailIV) //make([]byte, aes.BlockSize)
-	if _, err := io.ReadFull(rand.Reader, iv[:]); err != nil {
-		return nil, err
+func NewIV() *BMailIV {
+	for {
+
+		iv := new(BMailIV) //make([]byte, aes.BlockSize)
+		if _, err := io.ReadFull(rand.Reader, iv[:]); err != nil {
+			continue
+		}
+		return iv
 	}
-	return iv, nil
 }
 
 func (iv *BMailIV) Bytes() []byte {

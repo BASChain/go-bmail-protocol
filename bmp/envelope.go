@@ -32,6 +32,7 @@ type BMailEnvelope struct {
 	DateSince1970 uint64        `json:"timeSince1970"`
 	Subject       string        `json:"subject"`
 	MailBody      string        `json:"mailBody"`
+	PreEid        string        `json:"preEid"`
 }
 
 func (re *BMailEnvelope) Hash() []byte {
