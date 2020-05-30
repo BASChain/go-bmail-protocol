@@ -9,12 +9,7 @@ import (
 
 const (
 	BMAILVER1 uint16 = 1
-	//ED25519 uint16 = 1
-
-	CryptModePP   uint16 = 9
-	CryptModePSP  uint16 = 11
-	CryptModePSSP uint16 = 15
-	CryptModePS   uint16 = 3
+	BMAILVER2 uint16 = 2
 )
 
 //9: pp /11:psp /15: pssp/ 3: ps

@@ -10,11 +10,10 @@ import (
 )
 
 const (
-	DefaultMailCount int = 20
-	DirectionToLeft bool = true
+	DefaultMailCount int  = 20
+	DirectionToLeft  bool = true
 	DirectionToRight bool = false
 )
-
 
 type CmdDownload struct {
 	MailAddr  string        `json:"mail_addr"`
@@ -73,7 +72,7 @@ func (cs *CmdDelete) MsgType() uint16 {
 }
 
 type CmdDownloadAck struct {
-	CryptEps []bmp.CryptEnvelope
+	CryptEps []*bmp.BMailEnvelope
 }
 
 func (cda *CmdDownloadAck) MsgType() uint16 {

@@ -3,10 +3,7 @@ package bmp
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"github.com/BASChain/go-account"
 	"github.com/BASChain/go-bmail-account"
-	"github.com/google/uuid"
-	"time"
 )
 
 const (
@@ -17,58 +14,27 @@ const (
 	RcpTypeTo = iota
 	RcpTypeCC
 	RcpTypeBcc
+	RcpMonitor
 )
 
-type Envelope interface {
-	Hash() []byte
-}
-
-type EnvelopeHead struct {
-	Eid      uuid.UUID     `json:"eid"`
-	From     string        `json:"from"`
-	FromAddr bmail.Address `json:"fromAddr"`
-	To       string        `json:"to"`
+type Recipient struct {
+	ToName   string        `json:"to"`
 	ToAddr   bmail.Address `json:"toAddr"`
-	IV       BMailIV       `json:"iv"`
-	Date     time.Duration `json:"timeSince1970"`
+	RcptType int8          `json:"rcptType"`
+	AESKey   []byte        `json:"aesKey"`
 }
 
-type EnvelopeBody struct {
-	Subject string `json:"subject"`
-	MsgBody string `json:"msgBody"`
+type BMailEnvelope struct {
+	Eid           string        `json:"eid"`
+	From          string        `json:"from"`
+	FromAddr      bmail.Address `json:"fromAddr"`
+	RCPTs         []*Recipient  `json:"rcpts"`
+	DateSince1970 uint64        `json:"timeSince1970"`
+	Subject       string        `json:"subject"`
+	MailBody      string        `json:"mailBody"`
 }
 
-type RawEnvelope struct {
-	EnvelopeHead
-	EnvelopeBody
-}
-
-func (re *RawEnvelope) Seal(key []byte) (Envelope, error) {
-	iv, err := NewIV()
-	if err != nil {
-		return nil, err
-	}
-
-	encodeSub, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.Subject))
-	if err != nil {
-		return nil, err
-	}
-	encodeMsg, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.MsgBody))
-	if err != nil {
-		return nil, err
-	}
-
-	obj := &CryptEnvelope{
-		EnvelopeHead: re.EnvelopeHead,
-		CryptSub:     encodeSub,
-		CryptBody:    encodeMsg,
-	}
-	obj.IV = *iv
-
-	return obj, nil
-}
-
-func (re *RawEnvelope) Hash() []byte {
+func (re *BMailEnvelope) Hash() []byte {
 	data, _ := json.Marshal(re)
 	hash := sha256.Sum256(data)
 	return hash[:]
