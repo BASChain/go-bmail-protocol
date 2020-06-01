@@ -36,9 +36,8 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	}
 
 	ips, bcas := r.DomainMX(mailParts[1])
-	fmt.Println("======> mx:", len(ips), len(bcas))
 	if len(ips) == 0 || len(bcas) == 0 {
-		return nil, fmt.Errorf("no valid mx record")
+		return nil, fmt.Errorf("no valid mx[%s] record", mailParts[1])
 	}
 	fmt.Println("====2==> mx:", ips[0], bcas[0])
 	srvIP := choseBestServer(ips)
@@ -51,7 +50,7 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	}
 	for _, bca := range bcas {
 		obj.SrvBcas[bca] = true
-		fmt.Println("===got mx bca===>", bca)
+		fmt.Println("===mx bca===>", bca)
 	}
 	return obj, nil
 }
