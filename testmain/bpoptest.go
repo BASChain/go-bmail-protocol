@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"crypto/ed25519"
+	"encoding/base64"
 	"encoding/json"
 	"fmt"
 	"github.com/BASChain/go-bas-mail-server/bmailcrypt"
@@ -15,7 +16,7 @@ import (
 )
 
 func main() {
-	c := bpopclient.NewClient2(net.ParseIP("149.28.19.223"), 100)
+	c := bpopclient.NewClient2(net.ParseIP("34.92.157.168"), 100)
 	if c == nil {
 		fmt.Println("connect to peer error")
 		return
@@ -57,16 +58,35 @@ func main() {
 	cmdack := resp.CmdCxt.(*bpop.CmdDownloadAck)
 
 	for i := 0; i < len(cmdack.CryptEps); i++ {
-		cep := &cmdack.CryptEps[i]
-		jstr, _ := json.Marshal(cep.EnvelopeHead)
+		cep := cmdack.CryptEps[i]
+		jstr, _ := json.Marshal(*cep)
 		fmt.Println(string(jstr))
 
 		aesk, _ := bmailcrypt.GenerateAesKey(bmail.Address(cep.FromAddr).ToPubKey(), c.Priv)
-		plainsub, _ := bmailcrypt.Decrypt(aesk, cep.CryptSub)
-		plainbody, _ := bmailcrypt.Decrypt(aesk, cep.CryptBody)
+		var uniqk []byte
+		for j := 0; j < len(cep.RCPTs); j++ {
+			rcpt := cep.RCPTs[j]
+			if rcpt.ToName == se.Cmd.(*bpop.CmdDownload).MailAddr {
+				uniqk = rcpt.AESKey
+			}
+		}
+
+		if len(uniqk) == 0 {
+			fmt.Println("Decrypt break")
+			continue
+		}
+
+		//if se.Cmd.(*bpop.CmdDownload).MailAddr
+
+		plainkey, _ := bmailcrypt.Decrypt(aesk, uniqk)
+
+		subject, _ := base64.StdEncoding.DecodeString(cep.Subject)
+		contxt, _ := base64.StdEncoding.DecodeString(cep.MailBody)
+		plainsub, _ := bmailcrypt.Decrypt(plainkey, subject)
+		plainbody, _ := bmailcrypt.Decrypt(plainkey, contxt)
 		fmt.Println(string(plainsub))
 		fmt.Println(string(plainbody))
-		fmt.Println(int64(cep.EnvelopeHead.Date))
+		fmt.Println(int64(cep.DateSince1970))
 	}
 
 }
