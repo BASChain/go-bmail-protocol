@@ -68,6 +68,7 @@ func main() {
 			rcpt := cep.RCPTs[j]
 			if rcpt.ToName == se.Cmd.(*bpop.CmdDownload).MailAddr {
 				uniqk = rcpt.AESKey
+				break
 			}
 		}
 
