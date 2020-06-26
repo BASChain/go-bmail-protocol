@@ -3,10 +3,8 @@ package bmp
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"github.com/BASChain/go-account"
+	"fmt"
 	"github.com/BASChain/go-bmail-account"
-	"github.com/google/uuid"
-	"time"
 )
 
 const (
@@ -17,59 +15,62 @@ const (
 	RcpTypeTo = iota
 	RcpTypeCC
 	RcpTypeBcc
+	RcpMonitor
 )
 
-type Envelope interface {
-	Hash() []byte
-}
-
-type EnvelopeHead struct {
-	Eid      uuid.UUID     `json:"eid"`
-	From     string        `json:"from"`
-	FromAddr bmail.Address `json:"fromAddr"`
-	To       string        `json:"to"`
+type Recipient struct {
+	ToName   string        `json:"to"`
 	ToAddr   bmail.Address `json:"toAddr"`
-	IV       BMailIV       `json:"iv"`
-	Date     time.Duration `json:"timeSince1970"`
+	RcptType int8          `json:"rcptType"`
+	AESKey   []byte        `json:"aesKey"`
 }
 
-type EnvelopeBody struct {
-	Subject string `json:"subject"`
-	MsgBody string `json:"msgBody"`
+func (r *Recipient) ToString() string {
+	return fmt.Sprintf("\n=================================="+
+		"\n\tToName:\t%20s"+
+		"\n\tToAddr:\t%20s"+
+		"\n\tRcptType:\t%20d"+
+		"\n\tAESKey:\t%20x"+
+		"\n==================================",
+		r.ToName,
+		r.ToAddr,
+		r.RcptType,
+		r.AESKey)
 }
 
-type RawEnvelope struct {
-	EnvelopeHead
-	EnvelopeBody
+type BMailEnvelope struct {
+	Eid           string        `json:"eid"`
+	FromName      string        `json:"fromName"`
+	FromAddr      bmail.Address `json:"fromAddr"`
+	RCPTs         []*Recipient  `json:"rcpts"`
+	DateSince1970 uint64        `json:"timeSince1970"`
+	Subject       string        `json:"subject"`
+	MailBody      string        `json:"mailBody"`
+	SessionID     string        `json:"sessionID"`
 }
 
-func (re *RawEnvelope) Seal(key []byte) (Envelope, error) {
-	iv, err := NewIV()
-	if err != nil {
-		return nil, err
-	}
-
-	encodeSub, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.Subject))
-	if err != nil {
-		return nil, err
-	}
-	encodeMsg, err := account.EncryptWithIV(key, iv.Bytes(), ([]byte)(re.MsgBody))
-	if err != nil {
-		return nil, err
-	}
-
-	obj := &CryptEnvelope{
-		EnvelopeHead: re.EnvelopeHead,
-		CryptSub:     encodeSub,
-		CryptBody:    encodeMsg,
-	}
-	obj.IV = *iv
-
-	return obj, nil
-}
-
-func (re *RawEnvelope) Hash() []byte {
+func (re *BMailEnvelope) Hash() []byte {
 	data, _ := json.Marshal(re)
 	hash := sha256.Sum256(data)
 	return hash[:]
+}
+
+func (re *BMailEnvelope) ToString() string {
+
+	str := fmt.Sprintf("\n======================BMailEnvelope========================"+
+		"\n\tEid:\t%20s"+
+		"\n\tFrom:\t%20s"+
+		"\n\tFromAddr:\t%20s"+
+		"\n\tSessionEid:\t%20s",
+		re.Eid,
+		re.FromName,
+		re.FromAddr,
+		re.SessionID)
+
+	for _, r := range re.RCPTs {
+		str += r.ToString()
+	}
+
+	str += "\n==========================================================="
+	return str
 }

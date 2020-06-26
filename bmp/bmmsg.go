@@ -21,10 +21,12 @@ type Header struct {
 }
 
 func (h *Header) GetLen() int8 {
-	if h.Ver == translayer.BMAILVER1 {
+	switch h.Ver {
+	case translayer.BMAILVER1, translayer.BMAILVER2:
 		return 8
+	default:
+		return -1
 	}
-	return -1
 }
 
 func (h *Header) GetBytes() []byte {
@@ -80,11 +82,10 @@ func (ha *HELOACK) GetBytes() ([]byte, error) {
 }
 
 type EnvelopeSyn struct {
-	Mode uint16   `json:"mode"`
-	SN   BMailSN  `json:"sn"`
-	Sig  []byte   `json:"sig"`
-	Hash []byte   `json:"hash"`
-	Env  Envelope `json:"env"`
+	SN   BMailSN        `json:"sn"`
+	Sig  []byte         `json:"sig"`
+	Hash []byte         `json:"hash"`
+	Env  *BMailEnvelope `json:"env"`
 }
 
 func (es *EnvelopeSyn) MsgType() uint16 {

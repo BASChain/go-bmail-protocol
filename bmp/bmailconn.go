@@ -52,6 +52,7 @@ func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 		fmt.Println("write header len:", n)
 		return err
 	}
+	fmt.Println("send with header: body:=>", string(dataV))
 	if n, err := bc.Write(dataV); err != nil {
 		fmt.Println("write body len:", n)
 		return err
@@ -90,6 +91,9 @@ func (bc *BMailConn) ReadWithHeader(v EnvelopeMsg) error {
 			break
 		}
 	}
+
+	fmt.Println("read with header: body:=>", string(buf))
+
 	if err := json.Unmarshal(buf, v); err != nil {
 		fmt.Println("json.Unmarshal:", err)
 		return err

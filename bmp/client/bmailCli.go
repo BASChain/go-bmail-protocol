@@ -36,9 +36,8 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	}
 
 	ips, bcas := r.DomainMX(mailParts[1])
-	fmt.Println("======> mx:", len(ips), len(bcas))
 	if len(ips) == 0 || len(bcas) == 0 {
-		return nil, fmt.Errorf("no valid mx record")
+		return nil, fmt.Errorf("no valid mx[%s] record", mailParts[1])
 	}
 	fmt.Println("====2==> mx:", ips[0], bcas[0])
 	srvIP := choseBestServer(ips)
@@ -51,7 +50,7 @@ func NewClient(cc *ClientConf) (*BMailClient, error) {
 	}
 	for _, bca := range bcas {
 		obj.SrvBcas[bca] = true
-		fmt.Println("===got mx bca===>", bca)
+		fmt.Println("===mx bca===>", bca)
 	}
 	return obj, nil
 }
@@ -68,11 +67,7 @@ func (bmc *BMailClient) Close() {
 	bmc.resolver = nil
 }
 
-func (bmc *BMailClient) SendP2sMail(re *bmp.RawEnvelope) error {
-	return nil
-}
-
-func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
+func (bmc *BMailClient) SendMail(bme *bmp.BMailEnvelope) error {
 
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
@@ -83,21 +78,14 @@ func (bmc *BMailClient) SendP2pMail(re *bmp.RawEnvelope) error {
 	if err != nil {
 		return err
 	}
-	aesKey, err := bmc.Wallet.AeskeyOf(re.ToAddr.ToPubKey())
-	if err != nil {
-		return err
-	}
-	cryptEnv, err := re.Seal(aesKey)
-	if err != nil {
-		return err
-	}
-	synHash := cryptEnv.Hash()
+	synHash := bme.Hash()
+	signature := bmc.Wallet.Sign(ack.SN.Bytes())
+
 	msg := &bmp.EnvelopeSyn{
-		Mode: bmp.BMailModeP2P,
 		SN:   ack.SN,
-		Sig:  bmc.Wallet.Sign(ack.SN.Bytes()),
+		Sig:  signature,
 		Hash: synHash,
-		Env:  cryptEnv,
+		Env:  bme,
 	}
 	if err := conn.SendWithHeader(msg); err != nil {
 		return err
@@ -129,7 +117,7 @@ func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 	return ack, nil
 }
 
-func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, maxCount int) ([]bmp.CryptEnvelope, error) {
+func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, maxCount int) ([]*bmp.BMailEnvelope, error) {
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
 		fmt.Println("NewBMConn------>", err)
@@ -160,6 +148,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 		fmt.Println("SendWithHeader------>", err)
 		return nil, err
 	}
+
 	fmt.Println("======>:SendWithHeader success>", timeSince1970)
 	cmdAck := &bpop.CommandAck{}
 	cmdAck.CmdCxt = &bpop.CmdDownloadAck{}
@@ -175,7 +164,7 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 
 	if cmdAck.ErrorCode != 0 {
 		if cmdAck.ErrorCode == 1 {
-			return make([]bmp.CryptEnvelope, 0), nil
+			return make([]*bmp.BMailEnvelope, 0), nil
 		}
 		return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
 	}
