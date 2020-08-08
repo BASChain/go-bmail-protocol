@@ -2,10 +2,10 @@ package client
 
 import (
 	"fmt"
-	"github.com/BASChain/go-bmail-account"
-	"github.com/BASChain/go-bmail-protocol/bmp"
-	"github.com/BASChain/go-bmail-protocol/bpop"
-	resolver "github.com/BASChain/go-bmail-resolver"
+	"github.com/realbmail/go-bmail-account"
+	"github.com/realbmail/go-bmail-protocol/bmp"
+	"github.com/realbmail/go-bmail-protocol/bpop"
+	resolver "github.com/realbmail/go-bmail-resolver"
 	"net"
 	"strings"
 )

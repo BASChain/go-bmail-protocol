@@ -4,7 +4,7 @@ import (
 	"crypto/ed25519"
 	"crypto/rand"
 	"fmt"
-	"github.com/BASChain/go-account"
+	"github.com/realbmail/go-account"
 	"github.com/btcsuite/btcutil/base58"
 	ed255192 "github.com/kprc/chatserver/ed25519"
 )

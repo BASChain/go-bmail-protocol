@@ -2,8 +2,8 @@ package bpop
 
 import (
 	"encoding/json"
-	"github.com/BASChain/go-bmail-protocol/bmp"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-protocol/bmp"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 )
 
 type Command interface {

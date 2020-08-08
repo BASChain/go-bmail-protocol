@@ -3,7 +3,7 @@ package bmp
 import (
 	"encoding/json"
 	"fmt"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 	"net"
 )
 

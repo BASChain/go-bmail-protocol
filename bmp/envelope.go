@@ -4,7 +4,7 @@ import (
 	"crypto/sha256"
 	"encoding/json"
 	"fmt"
-	"github.com/BASChain/go-bmail-account"
+	"github.com/realbmail/go-bmail-account"
 )
 
 const (

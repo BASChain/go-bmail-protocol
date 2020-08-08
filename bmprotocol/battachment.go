@@ -3,7 +3,7 @@ package bmprotocol
 import (
 	"encoding/binary"
 	"fmt"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 	"github.com/btcsuite/btcutil/base58"
 	"github.com/pkg/errors"
 	"io"

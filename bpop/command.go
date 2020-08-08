@@ -3,9 +3,9 @@ package bpop
 import (
 	"crypto/sha256"
 	"encoding/json"
-	"github.com/BASChain/go-bmail-account"
-	"github.com/BASChain/go-bmail-protocol/bmp"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-account"
+	"github.com/realbmail/go-bmail-protocol/bmp"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 	"github.com/google/uuid"
 )
 

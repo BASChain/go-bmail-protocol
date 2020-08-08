@@ -2,8 +2,8 @@ package bmclient
 
 import (
 	"bytes"
-	"github.com/BASChain/go-bmail-protocol/bmprotocol"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-protocol/bmprotocol"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 	"github.com/pkg/errors"
 	"net"
 	"strconv"

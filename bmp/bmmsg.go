@@ -4,8 +4,8 @@ import (
 	"encoding/binary"
 	"encoding/json"
 	"errors"
-	"github.com/BASChain/go-bmail-account"
-	"github.com/BASChain/go-bmail-protocol/translayer"
+	"github.com/realbmail/go-bmail-account"
+	"github.com/realbmail/go-bmail-protocol/translayer"
 )
 
 type EnvelopeMsg interface {
