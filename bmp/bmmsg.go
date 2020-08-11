@@ -117,3 +117,20 @@ func (ea *EnvelopeAck) VerifyHeader(header *Header) bool {
 func (ha *EnvelopeAck) GetBytes() ([]byte, error) {
 	return json.Marshal(*ha)
 }
+
+type StampOptsAck struct {
+	IssuerName string   `json:"issuerName"`
+	HomePage   string   `json:"homePage"`
+	StampAddr  []string `json:"stampAddr"`
+}
+
+func (sa *StampOptsAck) MsgType() uint16 {
+	return translayer.RESP_STAMP_LIST
+}
+func (sa *StampOptsAck) VerifyHeader(header *Header) bool {
+	return header.MsgTyp == translayer.RESP_STAMP_LIST &&
+		header.MsgLen != 0
+}
+func (sa *StampOptsAck) GetBytes() ([]byte, error) {
+	return json.Marshal(*sa)
+}

@@ -32,7 +32,20 @@ func (bc *BMailConn) Helo() error {
 	}
 
 	return nil
+}
 
+func (bc *BMailConn) QueryStamp() error {
+	header := Header{
+		Ver:    translayer.BMAILVER1,
+		MsgTyp: translayer.STAMP_QUERY,
+		MsgLen: 0,
+	}
+	data := header.GetBytes()
+	if _, err := bc.Write(data); err != nil {
+		return err
+	}
+
+	return nil
 }
 
 func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
