@@ -134,3 +134,8 @@ func (sa *StampOptsAck) VerifyHeader(header *Header) bool {
 func (sa *StampOptsAck) GetBytes() ([]byte, error) {
 	return json.Marshal(*sa)
 }
+
+func (sa *StampOptsAck) String() string {
+	j, _ := json.Marshal(*sa)
+	return string(j)
+}
