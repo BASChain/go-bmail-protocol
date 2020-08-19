@@ -10,7 +10,7 @@ import (
 	"strings"
 )
 
-type ClientConf struct {
+type Conf struct {
 	Resolver resolver.NameResolver
 	Wallet   bmail.Wallet
 }
@@ -22,7 +22,7 @@ type BMailClient struct {
 	resolver resolver.NameResolver
 }
 
-func NewClient(cc *ClientConf) (*BMailClient, error) {
+func NewClient(cc *Conf) (*BMailClient, error) {
 
 	r := cc.Resolver
 	mailName := cc.Wallet.MailAddress()
@@ -82,10 +82,11 @@ func (bmc *BMailClient) SendMail(bme *bmp.BMailEnvelope) error {
 	signature := bmc.Wallet.Sign(ack.SN.Bytes())
 
 	msg := &bmp.EnvelopeSyn{
-		SN:   ack.SN,
-		Sig:  signature,
-		Hash: synHash,
-		Env:  bme,
+		SN:    ack.SN,
+		Sig:   signature,
+		Hash:  synHash,
+		Env:   bme,
+		Stamp: nil,
 	}
 	if err := conn.SendWithHeader(msg); err != nil {
 		return err
@@ -101,6 +102,44 @@ func (bmc *BMailClient) SendMail(bme *bmp.BMailEnvelope) error {
 
 	return nil
 }
+
+func (bmc *BMailClient) SendMailWithStamp(bme *bmp.BMailEnvelope, stamp *bmp.StampTX) error {
+
+	conn, err := bmp.NewBMConn(bmc.SrvIP)
+	if err != nil {
+		return err
+	}
+	defer conn.Close()
+	ack, err := bmc.HandShake(conn)
+	if err != nil {
+		return err
+	}
+	synHash := bme.Hash()
+	signature := bmc.Wallet.Sign(ack.SN.Bytes())
+
+	msg := &bmp.EnvelopeSyn{
+		SN:    ack.SN,
+		Sig:   signature,
+		Hash:  synHash,
+		Env:   bme,
+		Stamp: stamp,
+	}
+
+	if err := conn.SendWithHeader(msg); err != nil {
+		return err
+	}
+
+	msgAck := &bmp.EnvelopeAck{}
+	if err := conn.ReadWithHeader(msgAck); err != nil {
+		return err
+	}
+	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
+		return fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
+	}
+
+	return nil
+}
+
 func (bmc *BMailClient) HandShake(conn *bmp.BMailConn) (*bmp.HELOACK, error) {
 
 	if err := conn.Helo(); err != nil {
@@ -156,11 +195,6 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 		fmt.Println("ReadWithHeader------>", err)
 		return nil, err
 	}
-	//hash := resp.CmdCxt.Hash()
-	//if bytes.Compare(hash[:], resp.Hash) != 0 {
-	//	fmt.Println("hash error")
-	//	return
-	//}
 
 	if cmdAck.ErrorCode != 0 {
 		if cmdAck.ErrorCode == 1 {
@@ -168,10 +202,6 @@ func (bmc *BMailClient) ReceiveEnv(timeSince1970 int64, olderThanSince bool, max
 		}
 		return nil, fmt.Errorf("fetch data failed, server error:%d", ack.ErrCode)
 	}
-
-	//if !bmail.Verify(ack.SrvBca, cmdAck.Hash, cmdAck.Sig) {
-	//	return nil, fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
-	//}
 
 	envs := cmdAck.CmdCxt.(*bpop.CmdDownloadAck)
 	fmt.Println("======>:envelope loaded success=>", len(envs.CryptEps))

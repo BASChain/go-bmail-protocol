@@ -21,23 +21,17 @@ func NewBMConn(ip net.IP) (*BMailConn, error) {
 }
 
 func (bc *BMailConn) Helo() error {
-	header := Header{
-		Ver:    translayer.BMAILVER1,
-		MsgTyp: translayer.HELLO,
-		MsgLen: 0,
-	}
-	data := header.GetBytes()
-	if _, err := bc.Write(data); err != nil {
-		return err
-	}
-
-	return nil
+	return bc.simpleSend(translayer.HELLO)
 }
 
-func (bc *BMailConn) QueryStamp() error {
+func (bc *BMailConn) QueryStampOpts() error {
+	return bc.simpleSend(translayer.STAMP_QUERY)
+}
+
+func (bc *BMailConn) simpleSend(typ uint16) error {
 	header := Header{
 		Ver:    translayer.BMAILVER1,
-		MsgTyp: translayer.STAMP_QUERY,
+		MsgTyp: typ,
 		MsgLen: 0,
 	}
 	data := header.GetBytes()
@@ -65,7 +59,7 @@ func (bc *BMailConn) SendWithHeader(v EnvelopeMsg) error {
 		fmt.Println("write header len:", n)
 		return err
 	}
-	fmt.Println("send with header: body:=>", string(dataV))
+	//fmt.Println("send with header: body:=>", string(dataV))
 	if n, err := bc.Write(dataV); err != nil {
 		fmt.Println("write body len:", n)
 		return err

@@ -40,7 +40,6 @@ func (h *Header) GetBytes() []byte {
 	r = append(r, tmp...)
 
 	return r
-
 }
 
 func (h *Header) Derive(data []byte) (int, error) {
@@ -82,10 +81,11 @@ func (ha *HELOACK) GetBytes() ([]byte, error) {
 }
 
 type EnvelopeSyn struct {
-	SN   BMailSN        `json:"sn"`
-	Sig  []byte         `json:"sig"`
-	Hash []byte         `json:"hash"`
-	Env  *BMailEnvelope `json:"env"`
+	SN    BMailSN        `json:"sn"`
+	Sig   []byte         `json:"sig"`
+	Hash  []byte         `json:"hash"`
+	Env   *BMailEnvelope `json:"env"`
+	Stamp *StampTX       `json:"stamp"`
 }
 
 func (es *EnvelopeSyn) MsgType() uint16 {
@@ -116,26 +116,4 @@ func (ea *EnvelopeAck) VerifyHeader(header *Header) bool {
 }
 func (ha *EnvelopeAck) GetBytes() ([]byte, error) {
 	return json.Marshal(*ha)
-}
-
-type StampOptsAck struct {
-	IssuerName string   `json:"issuerName"`
-	HomePage   string   `json:"homePage"`
-	StampAddr  []string `json:"stampAddr"`
-}
-
-func (sa *StampOptsAck) MsgType() uint16 {
-	return translayer.RESP_STAMP_LIST
-}
-func (sa *StampOptsAck) VerifyHeader(header *Header) bool {
-	return header.MsgTyp == translayer.RESP_STAMP_LIST &&
-		header.MsgLen != 0
-}
-func (sa *StampOptsAck) GetBytes() ([]byte, error) {
-	return json.Marshal(*sa)
-}
-
-func (sa *StampOptsAck) String() string {
-	j, _ := json.Marshal(*sa)
-	return string(j)
 }
