@@ -42,32 +42,29 @@ func (sa *StampOptsAck) String() string {
 	return string(j)
 }
 
-type StampTX struct {
-}
-
-type StampReceipt struct {
+type StampTXData struct {
 	StampAddr string `json:"stampAddress"`
 	UserAddr  string `json:"userAddress"`
 	Credit    int64  `json:"credit"`
+	Nonce     int64  `json:"nonce"`
 }
-type StampReceiptACK struct {
-	Sig  []byte `json:"signature"`
-	Hash []byte `json:"hash"`
-	*StampReceipt
+type StampTX struct {
+	Sig []byte `json:"signature"`
+	*StampTXData
 }
 
-func (sra *StampReceiptACK) MsgType() uint16 {
+func (sra *StampTX) MsgType() uint16 {
 	return translayer.RESP_STAMP_RECEIPT
 }
-func (sra *StampReceiptACK) VerifyHeader(header *Header) bool {
+func (sra *StampTX) VerifyHeader(header *Header) bool {
 	return header.MsgTyp == translayer.RESP_STAMP_RECEIPT &&
 		header.MsgLen != 0
 }
-func (sra *StampReceiptACK) GetBytes() ([]byte, error) {
+func (sra *StampTX) GetBytes() ([]byte, error) {
 	return json.Marshal(sra)
 }
 
-func (sra *StampReceiptACK) String() string {
+func (sra *StampTX) String() string {
 	j, _ := json.Marshal(sra)
 	return string(j)
 }

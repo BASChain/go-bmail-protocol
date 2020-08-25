@@ -67,43 +67,7 @@ func (bmc *BMailClient) Close() {
 	bmc.resolver = nil
 }
 
-func (bmc *BMailClient) SendMail(bme *bmp.BMailEnvelope) error {
-
-	conn, err := bmp.NewBMConn(bmc.SrvIP)
-	if err != nil {
-		return err
-	}
-	defer conn.Close()
-	ack, err := bmc.HandShake(conn)
-	if err != nil {
-		return err
-	}
-	synHash := bme.Hash()
-	signature := bmc.Wallet.Sign(ack.SN.Bytes())
-
-	msg := &bmp.EnvelopeSyn{
-		SN:    ack.SN,
-		Sig:   signature,
-		Hash:  synHash,
-		Env:   bme,
-		Stamp: nil,
-	}
-	if err := conn.SendWithHeader(msg); err != nil {
-		return err
-	}
-
-	msgAck := &bmp.EnvelopeAck{}
-	if err := conn.ReadWithHeader(msgAck); err != nil {
-		return err
-	}
-	if !bmail.Verify(ack.SrvBca, synHash, msgAck.Sig) {
-		return fmt.Errorf("verify header ack failed:[%s]", ack.SrvBca)
-	}
-
-	return nil
-}
-
-func (bmc *BMailClient) SendMailWithStamp(bme *bmp.BMailEnvelope, stamp *bmp.StampTX) error {
+func (bmc *BMailClient) SendMail(bme *bmp.BMailEnvelope, stamp *bmp.StampTX) error {
 
 	conn, err := bmp.NewBMConn(bmc.SrvIP)
 	if err != nil {
